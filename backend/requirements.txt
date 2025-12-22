@@ -1,0 +1,18 @@
+# Django Core
+Django>=5.0,<6.0
+djangorestframework>=3.14.0
+
+# Database
+psycopg2-binary>=2.9.9
+
+# CORS
+django-cors-headers>=4.3.0
+
+# Production Server
+gunicorn>=21.2.0
+
+# Environment Variables
+python-decouple>=3.8
+
+# Utilities
+Pillow>=10.0.0
