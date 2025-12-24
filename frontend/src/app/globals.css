@@ -1,43 +1,47 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-inter);
+  --font-serif: var(--font-playfair);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+:root {
+  color-scheme: light dark;
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
-}
-
-/* Smooth scrolling */
 html {
   scroll-behavior: smooth;
 }
 
-/* Hide cursor follower on mobile */
-@media (max-width: 768px) {
-  [data-cursor-follower] {
-    display: none !important;
-  }
+body {
+  @apply bg-j-light-bg dark:bg-j-dark-bg text-j-light-text dark:text-j-dark-text;
+  transition: background-color 0.7s ease, color 0.7s ease;
+  font-family: var(--font-inter), system-ui, sans-serif;
 }
 
-/* Prevent layout shift during transitions */
-.page-transition {
-  will-change: opacity;
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-warm-dim hover:bg-warm-glow;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+/* Selection */
+::selection {
+  @apply bg-warm-glow/30 text-j-light-text dark:text-white;
+}
+
+/* Smooth transitions */
+* {
+  transition-property: background-color, border-color, color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
 }
