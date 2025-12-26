@@ -1,63 +1,60 @@
-version: '3.8'
-
 services:
-  # Servicio de Base de Datos PostgreSQL
+  # Base de datos PostgreSQL
   db:
-    image: postgres:15-alpine
-    container_name: producer-hub-db
+    image: postgres:16-alpine
+    container_name: betancourt-audio-db
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:
-      - POSTGRES_DB=${POSTGRES_DB:-producerhub}
+      - POSTGRES_DB=${POSTGRES_DB:-betancourt_audio}
       - POSTGRES_USER=${POSTGRES_USER:-postgres}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
     ports:
       - "5432:5432"
+    networks:
+      - betancourt-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
       interval: 10s
       timeout: 5s
       retries: 5
-    networks:
-      - producer-hub-network
+    restart: unless-stopped
 
-  # Servicio Backend Django
+  # Backend Django
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: producer-hub-backend
+    container_name: betancourt-audio-backend
     volumes:
       - ./backend:/app
-      - static_volume:/app/staticfiles
-      - media_volume:/app/media
+      - backend_static:/app/staticfiles
+      - backend_media:/app/media
     ports:
       - "8000:8000"
     environment:
       - DEBUG=${DEBUG:-True}
       - SECRET_KEY=${SECRET_KEY:-django-insecure-dev-key-change-in-production}
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-producerhub}
-      - POSTGRES_HOST=db
-      - POSTGRES_PORT=5432
-      - POSTGRES_DB=${POSTGRES_DB:-producerhub}
+      - POSTGRES_DB=${POSTGRES_DB:-betancourt_audio}
       - POSTGRES_USER=${POSTGRES_USER:-postgres}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
-      - ALLOWED_HOSTS=localhost,127.0.0.1,backend
-      - CORS_ALLOWED_ORIGINS=http://localhost:3000,http://frontend:3000
+      - POSTGRES_HOST=db
+      - POSTGRES_PORT=5432
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS:-localhost,127.0.0.1,backend,frontend}
+      - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS:-http://localhost:3000,http://frontend:3000}
+    networks:
+      - betancourt-network
     depends_on:
       db:
         condition: service_healthy
-    networks:
-      - producer-hub-network
-    stdin_open: true
-    tty: true
+    restart: unless-stopped
 
-  # Servicio Frontend Next.js
+  # Frontend Next.js 16
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: producer-hub-frontend
+    container_name: betancourt-audio-frontend
     volumes:
       - ./frontend:/app
       - /app/node_modules
@@ -65,26 +62,26 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - NODE_ENV=development
-      - NEXT_PUBLIC_API_URL=http://localhost:8000
+      - NODE_ENV=${NODE_ENV:-development}
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:8000}
       - WATCHPACK_POLLING=true
-    depends_on:
-      - backend
+      - NEXT_TELEMETRY_DISABLED=1
     networks:
-      - producer-hub-network
+      - betancourt-network
     stdin_open: true
     tty: true
+    restart: unless-stopped
 
-# Volúmenes para persistencia de datos
+# Volúmenes persistentes
 volumes:
   postgres_data:
     driver: local
-  static_volume:
+  backend_static:
     driver: local
-  media_volume:
+  backend_media:
     driver: local
 
-# Red personalizada para comunicación entre servicios
+# Red para comunicación entre servicios
 networks:
-  producer-hub-network:
+  betancourt-network:
     driver: bridge

@@ -53,6 +53,11 @@ export interface RawService {
 
 // --- User & Profile Types ---
 
+export enum UserRole {
+  CLIENT = 'CLIENT',
+  ADMIN = 'ADMIN',
+}
+
 export interface UserProfile {
   // Personal
   artistName: string;
@@ -83,7 +88,7 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  role: 'CLIENT' | 'ADMIN';
+  role: UserRole;
   avatar?: string;
   profile?: UserProfile; // Optional until set
 }

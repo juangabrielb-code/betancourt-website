@@ -16,20 +16,24 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     // Check localStorage for persisted user (client-side only)
-    const stored = localStorage.getItem('ba_user');
-    if (stored) {
-      try {
-        setUser(JSON.parse(stored));
-      } catch (e) {
-        console.error('Failed to parse stored user', e);
-        localStorage.removeItem('ba_user');
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('ba_user');
+      if (stored) {
+        try {
+          setUser(JSON.parse(stored));
+        } catch (e) {
+          console.error('Failed to parse stored user', e);
+          localStorage.removeItem('ba_user');
+        }
       }
     }
   }, []);
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('ba_user');
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('ba_user');
+    }
   };
 
   return (

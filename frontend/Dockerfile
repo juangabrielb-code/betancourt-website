@@ -1,17 +1,18 @@
-# Frontend Dockerfile para Next.js 14
+# Dockerfile para Next.js 16 - Betancourt Audio
 FROM node:20-alpine
 
 # Establecer directorio de trabajo
 WORKDIR /app
 
-# Instalar dependencias necesarias
+# Instalar dependencias del sistema
 RUN apk add --no-cache libc6-compat
 
-# Copiar package.json y package-lock.json
+# Copiar archivos de dependencias
 COPY package*.json ./
 
-# Instalar dependencias
-RUN npm ci --legacy-peer-deps || npm install --legacy-peer-deps
+# Limpiar cache de npm y instalar dependencias
+RUN npm cache clean --force && \
+    npm install
 
 # Copiar el resto del código
 COPY . .

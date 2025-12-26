@@ -73,6 +73,7 @@ export const Input: React.FC<InputProps> = ({ label, error, className = '', ...p
       {label && <label className="text-xs font-medium text-j-light-text/60 dark:text-j-dark-text/60 uppercase tracking-wider ml-1">{label}</label>}
       <input
         className={`w-full bg-j-light-surface/50 dark:bg-black/20 border ${borderStyles} rounded-xl px-4 py-3 text-j-light-text dark:text-j-dark-text placeholder-j-light-text/30 dark:placeholder-white/20 focus:outline-none focus:ring-1 transition-all duration-300 backdrop-blur-sm ${className}`}
+        suppressHydrationWarning
         {...props}
       />
       {error && <p className="text-xs text-red-500 ml-1">{error}</p>}
@@ -90,6 +91,7 @@ export const TextArea: React.FC<TextAreaProps> = ({ label, error, className = ''
       {label && <label className="text-xs font-medium text-j-light-text/60 dark:text-j-dark-text/60 uppercase tracking-wider ml-1">{label}</label>}
       <textarea
         className={`w-full bg-j-light-surface/50 dark:bg-black/20 border ${borderStyles} rounded-xl px-4 py-3 text-j-light-text dark:text-j-dark-text placeholder-j-light-text/30 dark:placeholder-white/20 focus:outline-none focus:ring-1 transition-all duration-300 backdrop-blur-sm min-h-[120px] resize-none ${className}`}
+        suppressHydrationWarning
         {...props}
       />
       {error && <p className="text-xs text-red-500 ml-1">{error}</p>}

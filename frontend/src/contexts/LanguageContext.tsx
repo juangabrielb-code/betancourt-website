@@ -3,12 +3,14 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import type { Language, Currency } from '@/types';
 import { Currency as CurrencyEnum } from '@/types';
+import { translations } from '@/utils/translations';
 
 interface LanguageContextType {
   language: Language;
   currency: Currency;
   setLanguage: (lang: Language) => void;
   setCurrency: (curr: Currency) => void;
+  t: typeof translations.en; // Translations object
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
@@ -32,8 +34,10 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
       });
   }, []);
 
+  const t = translations[language];
+
   return (
-    <LanguageContext.Provider value={{ language, currency, setLanguage, setCurrency }}>
+    <LanguageContext.Provider value={{ language, currency, setLanguage, setCurrency, t }}>
       {children}
     </LanguageContext.Provider>
   );

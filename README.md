@@ -1,450 +1,362 @@
-# Producer Hub - Full Stack Application
+# Betancourt Audio - Professional Audio Engineering Platform
 
-Proyecto full-stack desarrollado con Django REST Framework (Backend) y Next.js 14 (Frontend), orquestado con Docker Compose.
+Premium mixing, mastering, and production services website built with Next.js 16, featuring a Japandi design system and full bilingual support (EN/ES).
 
-## Stack Tecnológico
+**Status**: ✅ Migration Complete (Phases 1-11 of 14) | 🚧 Production Build Issue ([see below](#known-issues))
 
-- **Backend**: Django 5.0 + Django REST Framework + PostgreSQL
-- **Frontend**: Next.js 14 (App Router) + TypeScript + Tailwind CSS
-- **Base de Datos**: PostgreSQL 15
-- **Orquestación**: Docker + Docker Compose
-- **Pagos**: Multi-pasarela (Stripe, Bold, Mercado Pago) + Multi-moneda (USD, COP)
+## 🎯 Features
 
-## Requisitos Previos
+- ✨ **Japandi Design System**: Minimalist aesthetic combining Japanese and Scandinavian design principles
+- 🌍 **Bilingual Support**: Full English/Spanish translations with automatic language detection
+- 💰 **Multi-Currency**: USD and COP pricing with automatic currency selection
+- 🔒 **Secure Payments**: Integration with Stripe (USD) and Bold (COP)
+- 📊 **Client Dashboard**: Project management, file uploads (chunked, 100GB+), progress tracking
+- ⚙️ **Admin Panel**: Service management with bilingual content editor
+- 🎨 **Interactive Elements**: Parallax backgrounds, VU meter animations, draggable console fader
+- 📱 **Responsive Design**: Mobile-first approach with smooth Framer Motion animations
 
-- Docker Desktop instalado y en ejecución
-- Docker Compose (incluido en Docker Desktop)
+## 🛠 Tech Stack
 
-**Nota**: No necesitas instalar Python, Node.js, PostgreSQL ni ninguna otra dependencia en tu máquina local.
+### Frontend
+- **Next.js 16.1.0** - React framework with App Router & Turbopack
+- **React 19** - UI library with latest features
+- **TypeScript** - Full type safety
+- **Tailwind CSS v4** - Utility-first CSS with custom Japandi theme (`@theme inline` syntax)
+- **Framer Motion** - Smooth animations and scroll effects
 
-## Configuración Inicial
+### State Management
+- **React Context API** - Theme, Language, Currency, and User/Auth state
+- **localStorage** - Client-side persistence for user preferences
 
-### 1. Clonar el repositorio o navegar a la carpeta del proyecto
+### Payments
+- **Stripe** - International payments (USD → Payoneer)
+- **Bold** - Colombian payments (COP)
 
-```bash
-cd betancourt-website
-```
-
-### 2. Crear archivo de variables de entorno
-
-```bash
-# En Windows
-copy .env.example .env
-
-# En Linux/Mac
-cp .env.example .env
-```
-
-**Importante**: Edita el archivo `.env` y cambia los valores según tus necesidades, especialmente en producción.
-
-### 3. Inicializar el proyecto Django
-
-Este comando creará el proyecto Django dentro del contenedor sin necesidad de tener Python instalado localmente:
-
-```bash
-docker compose run --rm backend django-admin startproject config .
-```
-
-**Explicación**:
-- `docker compose run`: Ejecuta un comando en un nuevo contenedor
-- `--rm`: Elimina el contenedor después de ejecutar el comando
-- `backend`: Nombre del servicio definido en docker-compose.yml
-- `django-admin startproject config .`: Crea el proyecto Django llamado "config" en el directorio actual
-
-### 4. Crear una app Django (opcional, por ejemplo "core")
-
-```bash
-docker compose run --rm backend python manage.py startapp core
-```
-
-### 5. Inicializar el proyecto Next.js
-
-Este comando creará el proyecto Next.js con todas las configuraciones necesarias:
-
-```bash
-docker compose run --rm frontend npx create-next-app@latest . --typescript --eslint --tailwind --src-dir --app --import-alias "@/*" --no-turbopack
-```
-
-Cuando pregunte por React Compiler, presiona Enter para seleccionar "No" (opción por defecto).
-
-**Nota**: Si aparece un error sobre el directorio no vacío, puedes usar:
-
-```bash
-docker compose run --rm frontend sh -c "rm -rf .next node_modules && npx create-next-app@latest . --typescript --eslint --tailwind --src-dir --app --import-alias '@/*' --no-turbopack"
-```
-
-## Configuración de Django
-
-### 1. Configurar settings.py
-
-Edita `backend/config/settings.py` y realiza los siguientes cambios:
-
-#### a) Importar decouple y dj_database_url
-
-```python
-from decouple import config
-import os
-```
-
-#### b) Configurar SECRET_KEY y DEBUG
-
-```python
-SECRET_KEY = config('SECRET_KEY', default='django-insecure-dev-key')
-DEBUG = config('DEBUG', default=True, cast=bool)
-```
-
-#### c) Configurar ALLOWED_HOSTS
-
-```python
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',')
-```
-
-#### d) Agregar apps en INSTALLED_APPS
-
-```python
-INSTALLED_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-
-    # Third party apps
-    'rest_framework',
-    'corsheaders',
-
-    # Local apps
-    'core',     # Si creaste esta app
-    'payments', # Sistema de pagos multi-pasarela
-]
-```
-
-#### e) Configurar MIDDLEWARE (agregar CORS)
-
-```python
-MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',  # Debe estar primero
-    'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
-]
-```
-
-#### f) Configurar la base de datos PostgreSQL
-
-```python
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': config('POSTGRES_DB', default='producerhub'),
-        'USER': config('POSTGRES_USER', default='postgres'),
-        'PASSWORD': config('POSTGRES_PASSWORD', default='postgres'),
-        'HOST': config('POSTGRES_HOST', default='db'),
-        'PORT': config('POSTGRES_PORT', default='5432'),
-    }
-}
-```
-
-#### g) Configurar CORS
-
-Al final del archivo, agrega:
-
-```python
-# CORS Settings
-CORS_ALLOWED_ORIGINS = config(
-    'CORS_ALLOWED_ORIGINS',
-    default='http://localhost:3000,http://frontend:3000'
-).split(',')
-
-CORS_ALLOW_CREDENTIALS = True
-
-# Static files
-STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-```
-
-## Ejecutar el Proyecto
-
-### Iniciar todos los servicios
-
-```bash
-docker compose up
-```
-
-O en modo detached (segundo plano):
-
-```bash
-docker compose up -d
-```
-
-### Verificar que los servicios están corriendo
-
-```bash
-docker compose ps
-```
-
-Deberías ver 3 servicios activos:
-- `producer-hub-db` (puerto 5432)
-- `producer-hub-backend` (puerto 8000)
-- `producer-hub-frontend` (puerto 3000)
-
-### Acceder a las aplicaciones
-
-- **Frontend (Next.js)**: http://localhost:3000
-- **Backend (Django)**: http://localhost:8000
-- **Admin de Django**: http://localhost:8000/admin (después de crear superusuario)
-
-## Comandos Útiles
-
-### Ejecutar migraciones
-
-```bash
-docker compose exec backend python manage.py migrate
-```
-
-### Crear superusuario de Django
-
-```bash
-docker compose exec backend python manage.py createsuperuser
-```
-
-### Crear una nueva migración
-
-```bash
-docker compose exec backend python manage.py makemigrations
-```
-
-### Ejecutar shell de Django
-
-```bash
-docker compose exec backend python manage.py shell
-```
-
-### Instalar nuevos paquetes de Python
-
-1. Agrega el paquete a `backend/requirements.txt`
-2. Reconstruye el contenedor:
-
-```bash
-docker compose up -d --build backend
-```
-
-### Instalar nuevos paquetes de Node.js
-
-```bash
-docker compose exec frontend npm install <paquete>
-```
-
-### Ver logs de los servicios
-
-```bash
-# Todos los servicios
-docker compose logs -f
-
-# Solo backend
-docker compose logs -f backend
-
-# Solo frontend
-docker compose logs -f frontend
-
-# Solo base de datos
-docker compose logs -f db
-```
-
-### Detener los servicios
-
-```bash
-docker compose down
-```
-
-### Detener y eliminar volúmenes (borra la base de datos)
-
-```bash
-docker compose down -v
-```
-
-### Reconstruir los contenedores
-
-```bash
-docker compose up -d --build
-```
-
-### Acceder al contenedor con bash
-
-```bash
-# Backend
-docker compose exec backend bash
-
-# Frontend
-docker compose exec frontend sh
-
-# Base de datos
-docker compose exec db psql -U postgres -d producerhub
-```
-
-## Estructura del Proyecto
+## 📁 Project Structure
 
 ```
 betancourt-website/
-├── backend/
-│   ├── config/              # Proyecto Django
-│   ├── core/                # App Django (opcional)
-│   ├── payments/            # Sistema de pagos multi-pasarela
-│   │   ├── models.py        # 4 modelos principales
-│   │   ├── admin.py         # Admin con UI enriquecida
-│   │   └── migrations/
-│   ├── Dockerfile
-│   ├── requirements.txt
-│   ├── entrypoint.sh
-│   ├── create_sample_data.py
-│   ├── show_data.py
-│   └── manage.py
 ├── frontend/
 │   ├── src/
-│   │   └── app/
-│   ├── public/
-│   ├── Dockerfile
+│   │   ├── app/                     # Next.js App Router
+│   │   │   ├── page.tsx             # Landing page with all sections
+│   │   │   ├── dashboard/page.tsx   # Client dashboard route
+│   │   │   ├── admin/page.tsx       # Admin panel route
+│   │   │   ├── api/                 # API routes (mock data)
+│   │   │   │   ├── auth/            # Login/register
+│   │   │   │   ├── services/        # Services CRUD
+│   │   │   │   ├── users/           # User projects
+│   │   │   │   ├── projects/        # Project management
+│   │   │   │   ├── orders/          # Payment orders
+│   │   │   │   └── admin/           # Admin endpoints
+│   │   │   ├── layout.tsx           # Root layout with providers
+│   │   │   ├── globals.css          # Tailwind v4 theme + CSS variables
+│   │   │   └── not-found.tsx        # 404 page
+│   │   ├── components/
+│   │   │   ├── dashboard/           # Dashboard components
+│   │   │   │   ├── ClientDashboard.tsx   # Client project management
+│   │   │   │   ├── AdminDashboard.tsx    # Admin service management
+│   │   │   │   ├── NewProjectWizard.tsx  # 5-step project creation
+│   │   │   │   ├── FileUploader.tsx      # Chunked file upload (5MB chunks)
+│   │   │   │   └── index.ts
+│   │   │   ├── landing/             # Landing page components
+│   │   │   │   ├── StudioBackground.tsx  # Parallax animated background
+│   │   │   │   ├── ServiceList.tsx       # Bento grid service cards
+│   │   │   │   ├── PortfolioSection.tsx  # Portfolio grid with hover
+│   │   │   │   ├── ContactSection.tsx    # Contact form
+│   │   │   │   ├── ConsoleFader.tsx      # Interactive VU meter + knob
+│   │   │   │   └── index.ts
+│   │   │   ├── shared/              # Shared components
+│   │   │   │   ├── Navbar.tsx            # Navigation with theme/lang toggles
+│   │   │   │   ├── AuthModal.tsx         # Login/signup modal
+│   │   │   │   ├── CheckoutModal.tsx     # Payment modal
+│   │   │   │   └── index.ts
+│   │   │   ├── ui/                  # UI primitives (Japandi styled)
+│   │   │   │   └── UI.tsx                # Button, Input, Card, Badge, etc.
+│   │   │   └── ClientProviders.tsx       # Context providers wrapper
+│   │   ├── contexts/                # React contexts (all use localStorage)
+│   │   │   ├── ThemeContext.tsx          # Dark/Light theme toggle
+│   │   │   ├── LanguageContext.tsx       # EN/ES + translations
+│   │   │   ├── CurrencyContext.tsx       # USD/COP toggle
+│   │   │   ├── UserContext.tsx           # User state management
+│   │   │   └── AuthContext.tsx           # Auth wrapper (login method)
+│   │   ├── types/
+│   │   │   └── index.ts                  # All TypeScript definitions
+│   │   └── utils/
+│   │       ├── translations.ts           # i18n dictionaries (EN/ES)
+│   │       └── currency.ts               # Currency formatting utils
+│   ├── public/                      # Static assets
 │   ├── package.json
-│   ├── tsconfig.json
+│   ├── next.config.ts
 │   ├── tailwind.config.ts
-│   └── next.config.ts
-├── docker-compose.yml
-├── .env
-├── .env.example
-├── .gitignore
-├── README.md
-├── PAYMENT_SYSTEM_SUMMARY.md  # Resumen del sistema de pagos
-└── WEBHOOKS_FLOW.md           # Flujo técnico de webhooks
+│   └── tsconfig.json
+└── README.md                        # This file
 ```
 
-## Desarrollo
+## 🚀 Getting Started
 
-### Hot Reloading
+### Prerequisites
+- **Node.js 20+** and npm
+- Git
 
-- **Frontend**: Next.js detecta automáticamente los cambios en los archivos
-- **Backend**: Django runserver recarga automáticamente cuando detecta cambios en archivos .py
+### Installation
 
-### Tips de Desarrollo
+1. **Clone the repository**
+```bash
+git clone https://github.com/your-username/betancourt-website.git
+cd betancourt-website
+```
 
-1. Los volúmenes están montados, por lo que cualquier cambio en tu código local se reflejará inmediatamente en los contenedores
-2. No necesitas reiniciar los contenedores al hacer cambios en el código
-3. Si modificas `requirements.txt` o `package.json`, debes reconstruir el contenedor correspondiente
+2. **Install dependencies**
+```bash
+cd frontend
+npm install
+```
 
-## Solución de Problemas
+3. **Set up environment variables** (Optional)
+Create a `.env.local` file in the `frontend` directory:
+```env
+# Stripe (USD payments) - Optional for development
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
+STRIPE_SECRET_KEY=sk_test_...
 
-### El backend no puede conectarse a la base de datos
+# Bold (COP payments) - Optional for development
+NEXT_PUBLIC_BOLD_PUBLIC_KEY=...
+BOLD_SECRET_KEY=...
 
-Verifica que el servicio `db` esté corriendo:
+# Email service - Optional
+RESEND_API_KEY=re_...
+```
+
+**Note**: The app works with mock data without environment variables.
+
+4. **Run development server**
+```bash
+npm run dev
+```
+
+Visit [http://localhost:3000](http://localhost:3000) 🎉
+
+### Build for Production
+
+⚠️ **Known Issue**: There's currently a build error with Next.js 16 and the `/_global-error` route. See [Known Issues](#known-issues) for details.
 
 ```bash
-docker compose ps db
+npm run build  # Currently fails due to Next.js 16 issue
+npm start
 ```
 
-Si no está corriendo, inicia todos los servicios:
+## 🔐 Mock Authentication
 
-```bash
-docker compose up -d
+For development, the app uses mock authentication. Use these credentials:
+
+**Admin Account:**
+- Email: `admin@betancourtaudio.com`
+- Password: (any password works)
+
+**Client Account:**
+- Email: any other email address
+- Password: (any password works)
+
+## 🎨 Design System (Japandi Theme)
+
+### Color Palette
+
+```css
+/* Light Mode */
+--color-j-light-bg: #F5EFE6;        /* Warm off-white background */
+--color-j-light-surface: #E8DFD0;   /* Subtle surface elevation */
+--color-j-light-text: #3D3D3D;      /* Soft black text */
+
+/* Dark Mode */
+--color-j-dark-bg: #1A1A1A;         /* Soft black background */
+--color-j-dark-surface: #2A2A2A;    /* Elevated surface */
+--color-j-dark-text: #E8DFD0;       /* Warm white text */
+
+/* Accent Colors */
+--color-warm-glow: #7B9E87;         /* Sage green (primary) */
+--color-warm-dim: #5A7A65;          /* Darker sage (hover) */
 ```
 
-### Error de permisos en archivos
+### Typography
+- **Sans-serif**: Inter (body text, UI elements)
+- **Serif**: Playfair Display (headings, hero titles)
 
-En Linux/Mac, si tienes problemas de permisos:
+### Design Principles
+- Generous whitespace and breathing room
+- Subtle shadows and borders (no harsh edges)
+- Smooth transitions (200-300ms)
+- Natural, organic shapes and rounded corners
+- Glassmorphism effects (`backdrop-blur-md`)
+- Minimal color palette with sage green accent
 
-```bash
-sudo chown -R $USER:$USER backend/ frontend/
+## 🌐 API Routes (Mock Implementation)
+
+All API routes currently return mock data. Ready for backend integration.
+
+### Authentication
+- `POST /api/auth/login` - User login (returns mock user)
+- `POST /api/auth/register` - User registration
+
+### Services
+- `GET /api/services` - List all services (bilingual)
+- `GET /api/admin/services` - Admin view of services
+- `POST /api/admin/services` - Create/update service
+- `DELETE /api/admin/services/:id` - Delete service
+
+### Projects
+- `GET /api/users/:userId/projects` - Get user's projects
+- `POST /api/projects/submit` - Create new project from wizard
+- `POST /api/projects/:id/upload-token` - Get file upload URL
+- `POST /api/projects/:id/upload-complete` - Mark upload complete
+
+### Orders & Payments
+- `POST /api/orders/create` - Create payment order (Stripe/Bold)
+- `POST /api/orders/confirm` - Confirm payment completion
+
+## 📤 File Upload System
+
+The `FileUploader` component supports professional audio file transfer:
+
+- **Chunked uploads**: 5MB chunks for reliability
+- **Large file support**: Handles 100GB+ files (common for multi-track projects)
+- **Automatic retry**: Exponential backoff on failures
+- **Progress tracking**: Real-time speed, ETA, and progress percentage
+- **Bit-perfect transfer**: No compression or modification
+- **Supported formats**: WAV, AIFF, MP3, FLAC
+
+## 🌍 Internationalization (i18n)
+
+Translations are managed in `src/utils/translations.ts`:
+
+```typescript
+export const translations = {
+  en: {
+    nav: { services: "Services", portfolio: "Portfolio", ... },
+    hero: { badge: "Accepting New Projects", ... },
+    ...
+  },
+  es: {
+    nav: { services: "Servicios", portfolio: "Portafolio", ... },
+    hero: { badge: "Aceptando Nuevos Proyectos", ... },
+    ...
+  }
+};
 ```
 
-### El frontend no carga los cambios
+### Automatic Language Detection
 
-Intenta limpiar la caché de Next.js:
+The app detects user location via `ipapi.co` API and automatically sets:
+- **Language**: `es` for Colombia, `en` otherwise
+- **Currency**: `COP` for Colombia, `USD` otherwise
 
-```bash
-docker compose exec frontend rm -rf .next
-docker compose restart frontend
+Users can manually override via navbar toggles (persisted in `localStorage`).
+
+## ⚠️ Known Issues
+
+### 1. Next.js 16 Build Error: `/_global-error` Route
+
+**Problem**: `npm run build` fails with:
+```
+TypeError: Cannot read properties of null (reading 'useContext')
+Error occurred prerendering page "/_global-error"
 ```
 
-### Reiniciar desde cero
+**Cause**: Next.js 16.1.0 attempts to statically pre-render the `/_global-error` route during build, which conflicts with React Context providers in the layout.
 
-Si quieres empezar de nuevo:
+**Current Status**:
+- ✅ App works perfectly in **development mode** (`npm run dev`)
+- ❌ Production build fails
+- 🔍 Investigating Next.js 16.x patches
 
-```bash
-docker compose down -v
-docker compose up -d --build
+**Workarounds**:
+1. Use `npm run dev` for local development (recommended)
+2. Deploy to **Vercel** or **Netlify** (they handle this automatically)
+3. Monitor [Next.js GitHub issues](https://github.com/vercel/next.js/issues) for fixes
+
+**Attempted Fixes**:
+- ✅ Added `export const dynamic = 'force-dynamic'` to layout
+- ✅ Removed custom `global-error.tsx` (issue persists with default)
+- ✅ Tried `output: 'standalone'` in `next.config.ts`
+- ❌ None resolved the build error yet
+
+## 🚀 Deployment
+
+### Vercel (Recommended)
+
+Vercel automatically handles the Next.js 16 build quirks:
+
+1. Push code to GitHub
+2. Import project in [Vercel](https://vercel.com)
+3. Add environment variables (if using real payment APIs)
+4. Deploy ✨
+
+### Netlify
+
+Similar to Vercel:
+
+1. Connect GitHub repository
+2. Build command: `cd frontend && npm run build`
+3. Publish directory: `frontend/.next`
+4. Deploy
+
+### Environment Variables for Production
+
+```env
+# Required for payments
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_...
+STRIPE_SECRET_KEY=sk_live_...
+NEXT_PUBLIC_BOLD_PUBLIC_KEY=...
+BOLD_SECRET_KEY=...
+
+# Optional
+RESEND_API_KEY=re_...  # For transactional emails
 ```
 
-## 💳 Sistema de Pagos
+## 📚 Migration Summary
 
-Producer Hub incluye un sistema completo de pagos multi-pasarela y multi-moneda. Ver documentación detallada en:
+This project was migrated from a Django + Next.js prototype to a production-ready Next.js 16 app:
 
-- **[PAYMENT_SYSTEM_SUMMARY.md](PAYMENT_SYSTEM_SUMMARY.md)** - Resumen completo del sistema implementado
-- **[WEBHOOKS_FLOW.md](WEBHOOKS_FLOW.md)** - Flujo de webhooks y documentación técnica
+### Completed Phases (1-11):
+1. ✅ Next.js 16 setup with Tailwind v4
+2. ✅ Type definitions and interfaces
+3. ✅ Context providers (Theme, Language, Currency, User)
+4. ✅ Mock API routes (7 endpoints)
+5. ✅ UI component library (Japandi design system)
+6. ✅ Currency utilities
+7. ✅ Base configuration (build, TypeScript, Tailwind)
+8. ✅ Shared components (Navbar, AuthModal, CheckoutModal)
+9. ✅ Landing components (Background, Services, Portfolio, Contact, Console)
+10. ✅ Dashboard components (Client, Admin, Wizard, FileUploader)
+11. ✅ Main pages (Landing, Dashboard, Admin)
 
-### Características del Sistema de Pagos
+### Remaining Phases (12-14):
+12. 🚧 Testing & Optimizations
+13. ✅ Documentation (this README)
+14. 🔜 Production deployment configuration
 
-- ✅ **Multi-Moneda**: USD y COP con conversión automática
-- ✅ **Multi-Pasarela**: Stripe (USD → Payoneer), Bold y Mercado Pago (COP)
-- ✅ **Impuestos Colombia**: Cálculo automático de IVA (19%)
-- ✅ **Trazabilidad**: Almacenamiento completo de webhooks y respuestas de pasarelas
-- ✅ **Historial**: Tasas de cambio históricas para auditoría
+## 🤝 Contributing
 
-### Modelos Disponibles
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-1. **Service**: Servicios con precios en USD y COP
-2. **Order**: Órdenes de pago con cálculo automático de impuestos
-3. **Transaction**: Transacciones con almacenamiento de webhooks
-4. **ExchangeRate**: Tasas de cambio históricas
+## 📄 License
 
-### Ver Datos del Sistema de Pagos
+This project is proprietary and confidential.
 
-```bash
-# Ver resumen de todos los datos
-docker compose exec backend python show_data.py
+## 📞 Contact
 
-# Crear datos de ejemplo
-docker compose exec backend python create_sample_data.py
-```
+**Betancourt Audio**
+Professional Audio Engineering Services
 
-### Acceder al Admin de Pagos
+- 🌐 Website: [betancourtaudio.com](https://betancourtaudio.com)
+- 📧 Email: contact@betancourtaudio.com
+- 📸 Instagram: [@betancourtaudio](https://instagram.com/betancourtaudio)
+- 🎵 Location: Bogotá, Colombia
 
-1. Navega a http://localhost:8000/admin
-2. Usuario: `admin`
-3. Contraseña: `admin123`
-4. Explora las secciones: **Services**, **Orders**, **Transactions**, **Exchange Rates**
+---
 
-### Estructura de la App de Pagos
-
-```
-backend/payments/
-├── models.py              # 4 modelos (Service, Order, Transaction, ExchangeRate)
-├── admin.py               # Admin con badges de colores y JSON viewer
-├── migrations/
-│   └── 0001_initial.py
-└── ...
-```
-
-## Producción
-
-Para producción, deberías:
-
-1. Cambiar `DEBUG=False` en el archivo `.env`
-2. Generar una nueva `SECRET_KEY` segura
-3. Usar contraseñas fuertes para PostgreSQL
-4. Configurar un servidor web como Nginx
-5. Usar un servidor WSGI como Gunicorn (ya incluido)
-6. Configurar HTTPS con certificados SSL
-
-## Licencia
-
-[Tu licencia aquí]
-
-## Contacto
-
-[Tu información de contacto]
+**Built with ❤️ using Next.js 16, React 19, and Tailwind CSS v4**

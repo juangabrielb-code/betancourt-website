@@ -4,9 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useCurrency } from '@/contexts/CurrencyContext';
-import { useAuth } from '@/contexts/AuthContext';
 import { Navbar } from '@/components/shared/Navbar';
-import { AuthModal } from '@/components/shared/AuthModal';
 import { CheckoutModal } from '@/components/shared/CheckoutModal';
 import { StudioBackground } from '@/components/landing/StudioBackground';
 import { ServiceList } from '@/components/landing/ServiceList';
@@ -24,9 +22,7 @@ export default function Home() {
   const router = useRouter();
   const { t, language } = useLanguage();
   const { currency } = useCurrency();
-  const { user } = useAuth();
 
-  const [authModalOpen, setAuthModalOpen] = useState(false);
   const [checkoutModalOpen, setCheckoutModalOpen] = useState(false);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [services, setServices] = useState<Service[]>([]);
@@ -74,7 +70,6 @@ export default function Home() {
       <StudioBackground />
 
       <Navbar
-        onAuthOpen={() => setAuthModalOpen(true)}
         onNavigate={handleNavigate}
       />
 
@@ -189,11 +184,6 @@ export default function Home() {
       </footer>
 
       {/* Modals */}
-      <AuthModal
-        isOpen={authModalOpen}
-        onClose={() => setAuthModalOpen(false)}
-      />
-
       <CheckoutModal
         service={selectedService}
         isOpen={checkoutModalOpen}
