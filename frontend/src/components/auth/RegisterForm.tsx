@@ -4,6 +4,8 @@
  * RegisterForm Component
  *
  * User registration form with real-time validation and password strength meter.
+ * Integrated with Betancourt Audio Japandi design system.
+ * Uses existing UI components (Button, Input) and translation system.
  *
  * Features:
  * - Email validation (format + existence check)
@@ -19,6 +21,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { Button, Input } from '../ui/UI';
 
 interface RegisterFormProps {
   onSuccess?: () => void;
@@ -199,10 +202,16 @@ export default function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFor
       strong: 'bg-green-500',
     };
 
+    const textColors = {
+      weak: 'text-red-600 dark:text-red-400',
+      medium: 'text-yellow-600 dark:text-yellow-400',
+      strong: 'text-green-600 dark:text-green-400',
+    };
+
     const labels = {
-      weak: t?.('Weak') || 'Weak',
-      medium: t?.('Medium') || 'Medium',
-      strong: t?.('Strong') || 'Strong',
+      weak: 'Weak',
+      medium: 'Medium',
+      strong: 'Strong',
     };
 
     if (!formData.password) return null;
@@ -211,35 +220,44 @@ export default function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFor
       <div className="mt-2">
         <div className="flex gap-1">
           <div className={`h-1 flex-1 rounded ${colors[passwordStrength]}`} />
-          <div className={`h-1 flex-1 rounded ${passwordStrength !== 'weak' ? colors[passwordStrength] : 'bg-gray-200'}`} />
-          <div className={`h-1 flex-1 rounded ${passwordStrength === 'strong' ? colors[passwordStrength] : 'bg-gray-200'}`} />
+          <div className={`h-1 flex-1 rounded ${passwordStrength !== 'weak' ? colors[passwordStrength] : 'bg-j-light-text/10 dark:bg-j-dark-text/10'}`} />
+          <div className={`h-1 flex-1 rounded ${passwordStrength === 'strong' ? colors[passwordStrength] : 'bg-j-light-text/10 dark:bg-j-dark-text/10'}`} />
         </div>
-        <p className={`text-xs mt-1 ${passwordStrength === 'weak' ? 'text-red-600' : passwordStrength === 'medium' ? 'text-yellow-600' : 'text-green-600'}`}>
-          {t?.('Password strength') || 'Password strength'}: {labels[passwordStrength]}
+        <p className={`text-xs mt-1 ${textColors[passwordStrength]}`}>
+          Password strength: {labels[passwordStrength]}
         </p>
       </div>
     );
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-      <h2 className="text-2xl font-bold mb-6">
-        {t?.('Create Account') || 'Create Account'}
-      </h2>
+    <form onSubmit={handleSubmit} className="space-y-5" noValidate>
+      {/* Title */}
+      <div className="text-center mb-8">
+        <h2 className="text-2xl font-bold text-j-light-text dark:text-white mb-2">
+          {t.auth.signupTitle}
+        </h2>
+        <p className="text-sm text-j-light-text/60 dark:text-j-dark-text/70">
+          {t.auth.subtitleSignup}
+        </p>
+      </div>
 
       {/* API Error */}
       {error && (
-        <div className="p-3 bg-red-50 border border-red-200 rounded text-red-700 text-sm">
+        <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-600 dark:text-red-400 text-sm backdrop-blur-sm">
           {error}
         </div>
       )}
 
       {/* Email */}
       <div>
-        <label htmlFor="email" className="block text-sm font-medium mb-1">
-          {t?.('Email') || 'Email'} *
+        <label
+          htmlFor="email"
+          className="block text-sm font-medium mb-2 text-j-light-text dark:text-j-dark-text"
+        >
+          {t.auth.email}
         </label>
-        <input
+        <Input
           type="email"
           id="email"
           name="email"
@@ -248,16 +266,11 @@ export default function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFor
           onBlur={handleBlur}
           required
           autoComplete="email"
-          aria-invalid={!!validationErrors.email}
-          aria-describedby={validationErrors.email ? 'email-error' : undefined}
-          className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 ${
-            validationErrors.email
-              ? 'border-red-500 focus:ring-red-500'
-              : 'border-gray-300 focus:ring-blue-500'
-          }`}
+          className="w-full"
+          placeholder="your@email.com"
         />
         {validationErrors.email && (
-          <p id="email-error" className="text-red-600 text-sm mt-1" role="alert">
+          <p className="text-red-600 dark:text-red-400 text-sm mt-1" role="alert">
             {validationErrors.email}
           </p>
         )}
@@ -265,43 +278,54 @@ export default function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFor
 
       {/* First Name */}
       <div>
-        <label htmlFor="firstName" className="block text-sm font-medium mb-1">
-          {t?.('First Name') || 'First Name'}
+        <label
+          htmlFor="firstName"
+          className="block text-sm font-medium mb-2 text-j-light-text dark:text-j-dark-text"
+        >
+          First Name
         </label>
-        <input
+        <Input
           type="text"
           id="firstName"
           name="firstName"
           value={formData.firstName}
           onChange={handleChange}
           autoComplete="given-name"
-          className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full"
+          placeholder="Juan"
         />
       </div>
 
       {/* Last Name */}
       <div>
-        <label htmlFor="lastName" className="block text-sm font-medium mb-1">
-          {t?.('Last Name') || 'Last Name'}
+        <label
+          htmlFor="lastName"
+          className="block text-sm font-medium mb-2 text-j-light-text dark:text-j-dark-text"
+        >
+          Last Name
         </label>
-        <input
+        <Input
           type="text"
           id="lastName"
           name="lastName"
           value={formData.lastName}
           onChange={handleChange}
           autoComplete="family-name"
-          className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full"
+          placeholder="Betancourt"
         />
       </div>
 
       {/* Password */}
       <div>
-        <label htmlFor="password" className="block text-sm font-medium mb-1">
-          {t?.('Password') || 'Password'} *
+        <label
+          htmlFor="password"
+          className="block text-sm font-medium mb-2 text-j-light-text dark:text-j-dark-text"
+        >
+          {t.auth.password}
         </label>
         <div className="relative">
-          <input
+          <Input
             type={showPassword ? 'text' : 'password'}
             id="password"
             name="password"
@@ -310,25 +334,29 @@ export default function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFor
             onBlur={handleBlur}
             required
             autoComplete="new-password"
-            aria-invalid={!!validationErrors.password}
-            aria-describedby={validationErrors.password ? 'password-error' : undefined}
-            className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 ${
-              validationErrors.password
-                ? 'border-red-500 focus:ring-red-500'
-                : 'border-gray-300 focus:ring-blue-500'
-            }`}
+            className="w-full pr-10"
+            placeholder="••••••••"
           />
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-2.5 text-gray-500 hover:text-gray-700"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-j-light-text/50 dark:text-j-dark-text/50 hover:text-j-light-text dark:hover:text-j-dark-text transition-colors"
             aria-label={showPassword ? 'Hide password' : 'Show password'}
           >
-            {showPassword ? '👁️' : '👁️‍🗨️'}
+            {showPassword ? (
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              </svg>
+            ) : (
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+              </svg>
+            )}
           </button>
         </div>
         {validationErrors.password && (
-          <p id="password-error" className="text-red-600 text-sm mt-1" role="alert">
+          <p className="text-red-600 dark:text-red-400 text-sm mt-1" role="alert">
             {validationErrors.password}
           </p>
         )}
@@ -337,10 +365,13 @@ export default function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFor
 
       {/* Confirm Password */}
       <div>
-        <label htmlFor="passwordConfirm" className="block text-sm font-medium mb-1">
-          {t?.('Confirm Password') || 'Confirm Password'} *
+        <label
+          htmlFor="passwordConfirm"
+          className="block text-sm font-medium mb-2 text-j-light-text dark:text-j-dark-text"
+        >
+          {t.auth.confirmPassword}
         </label>
-        <input
+        <Input
           type={showPassword ? 'text' : 'password'}
           id="passwordConfirm"
           name="passwordConfirm"
@@ -349,40 +380,36 @@ export default function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFor
           onBlur={handleBlur}
           required
           autoComplete="new-password"
-          aria-invalid={!!validationErrors.passwordConfirm}
-          aria-describedby={validationErrors.passwordConfirm ? 'passwordConfirm-error' : undefined}
-          className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 ${
-            validationErrors.passwordConfirm
-              ? 'border-red-500 focus:ring-red-500'
-              : 'border-gray-300 focus:ring-blue-500'
-          }`}
+          className="w-full"
+          placeholder="••••••••"
         />
         {validationErrors.passwordConfirm && (
-          <p id="passwordConfirm-error" className="text-red-600 text-sm mt-1" role="alert">
+          <p className="text-red-600 dark:text-red-400 text-sm mt-1" role="alert">
             {validationErrors.passwordConfirm}
           </p>
         )}
       </div>
 
       {/* Submit Button */}
-      <button
+      <Button
         type="submit"
         disabled={loading}
-        className="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        className="w-full !py-3"
+        variant="glass"
       >
-        {loading ? (t?.('Creating account...') || 'Creating account...') : (t?.('Create Account') || 'Create Account')}
-      </button>
+        {loading ? t.auth.processing : t.auth.submitSignup}
+      </Button>
 
       {/* Switch to Login */}
       {onSwitchToLogin && (
-        <p className="text-center text-sm text-gray-600">
-          {t?.('Already have an account?') || 'Already have an account?'}{' '}
+        <p className="text-center text-sm text-j-light-text/60 dark:text-j-dark-text/70 pt-4">
+          {t.auth.switchToLogin.split('?')[0]}?{' '}
           <button
             type="button"
             onClick={onSwitchToLogin}
-            className="text-blue-600 hover:underline focus:outline-none"
+            className="text-warm-glow hover:underline focus:outline-none font-medium"
           >
-            {t?.('Sign in') || 'Sign in'}
+            {t.auth.switchToLogin.split('Sign in')[1]?.trim() || 'Sign in'}
           </button>
         </p>
       )}

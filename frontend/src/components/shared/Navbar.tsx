@@ -1,9 +1,10 @@
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Container, Button } from '../ui/UI';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
+import AuthModal from '../auth/AuthModal';
 
 interface NavbarProps {
   onNavigate?: (section: string) => void;
@@ -12,6 +13,7 @@ interface NavbarProps {
 export const Navbar: React.FC<NavbarProps> = ({ onNavigate }) => {
   const { language, setLanguage, t } = useLanguage();
   const { theme, toggleTheme } = useTheme();
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   const handleLanguageToggle = () => {
     const newLang = language === 'en' ? 'es' : 'en';
@@ -99,16 +101,23 @@ export const Navbar: React.FC<NavbarProps> = ({ onNavigate }) => {
             </button>
           </div>
 
-          {/* Auth Button - Placeholder for new auth system */}
+          {/* Auth Button */}
           <Button
             variant="glass"
-            onClick={() => {/* Login functionality will be implemented */}}
+            onClick={() => setIsAuthModalOpen(true)}
             className="!px-5 !py-2 !text-xs !rounded-full ml-2 hover:bg-j-light-text hover:text-white dark:hover:bg-warm-glow dark:hover:text-black transition-colors"
           >
             {t.nav.login}
           </Button>
         </div>
       </Container>
+
+      {/* Auth Modal */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        defaultView="login"
+      />
     </nav>
   );
 };
