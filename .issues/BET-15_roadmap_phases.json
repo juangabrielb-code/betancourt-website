@@ -1,0 +1,52 @@
+{
+  "phases": [
+    {
+      "title": "Fase 1: Setup y Configuración de Dependencias",
+      "description": "## Objetivo\nInstalar y configurar todas las dependencias necesarias para autenticación email/password con Auth.js y Django.\n\n## Parte de\nBET-15: Identidad Tradicional (Email + Contraseña)\n\n## Tareas\n- Instalar Auth.js (NextAuth.js v5) con Credentials Provider\n- Instalar Prisma/ORM para Next.js\n- Instalar Argon2 hasher para Django\n- Instalar djangorestframework-simplejwt\n- Configurar variables de entorno base\n- Generar secrets (NEXTAUTH_SECRET, JWT secrets)\n\n## Acceptance Criteria\n- [ ] Auth.js instalado y configurado en frontend\n- [ ] Argon2 hasher configurado en Django\n- [ ] JWT libraries instaladas\n- [ ] Archivos .env.local y backend/.env creados con placeholders\n- [ ] Secrets generados de forma segura\n- [ ] No hay conflictos de dependencias\n\n## Referencias\nRef: .issues/BET-15_shaping_solution.md (Section 9.1)",
+      "priority": 1,
+      "labels": ["backend", "frontend", "setup"]
+    },
+    {
+      "title": "Fase 2: Modelos de Base de Datos y Migraciones",
+      "description": "## Objetivo\nCrear modelos de Usuario personalizado y PasswordResetToken en Django con migraciones.\n\n## Parte de\nBET-15: Identidad Tradicional (Email + Contraseña)\n\n## Tareas\n- Crear app Django 'authentication'\n- Definir Custom User Model extendiendo AbstractUser\n- Configurar email como USERNAME_FIELD\n- Crear modelo PasswordResetToken\n- Generar migraciones iniciales\n- Aplicar migraciones a PostgreSQL\n- Verificar índices en email y token fields\n\n## Acceptance Criteria\n- [ ] Custom User Model creado con UUID primary key\n- [ ] Email configurado como identificador único\n- [ ] PasswordResetToken model con expiration logic\n- [ ] Migraciones aplicadas sin errores\n- [ ] Índices creados en campos críticos\n- [ ] Models visibles en Django Admin\n\n## Referencias\nRef: .issues/BET-15_shaping_solution.md (Section 9.3)",
+      "priority": 1,
+      "labels": ["backend", "database", "auth"]
+    },
+    {
+      "title": "Fase 3: Backend API - Endpoints de Autenticación",
+      "description": "## Objetivo\nImplementar endpoints REST para registro, login, forgot password y reset password.\n\n## Parte de\nBET-15: Identidad Tradicional (Email + Contraseña)\n\n## Tareas\n- Crear serializers para User y PasswordResetToken\n- Implementar endpoint POST /api/auth/register/\n- Implementar endpoint POST /api/auth/login/\n- Implementar endpoint POST /api/auth/forgot-password/\n- Implementar endpoint POST /api/auth/reset-password/\n- Configurar Argon2 password hashing\n- Implementar rate limiting\n- Implementar anti-enumeration (timing-safe comparisons)\n- Configurar JWT token generation\n\n## Acceptance Criteria\n- [ ] Endpoint de registro crea usuarios y hashea passwords\n- [ ] Endpoint de login valida credenciales con timing-safe\n- [ ] Mensajes de error genéricos (anti-enumeration)\n- [ ] Rate limiting activo en todos los endpoints\n- [ ] Tokens JWT generados correctamente\n- [ ] Password reset flow completo funcional\n- [ ] Passwords nunca en texto plano\n\n## Referencias\nRef: .issues/BET-15_shaping_solution.md (Section 9.7)",
+      "priority": 1,
+      "labels": ["backend", "api", "auth", "security"]
+    },
+    {
+      "title": "Fase 4: Frontend - Formularios y Componentes UI",
+      "description": "## Objetivo\nCrear componentes de autenticación: RegisterForm, LoginForm, ForgotPasswordForm, ResetPasswordForm.\n\n## Parte de\nBET-15: Identidad Tradicional (Email + Contraseña)\n\n## Tareas\n- Crear AuthContext provider\n- Crear RegisterForm con validación en tiempo real\n- Crear LoginForm con manejo de errores\n- Crear ForgotPasswordForm\n- Crear ResetPasswordForm con password strength meter\n- Crear AuthModal contenedor\n- Integrar con Navbar (mostrar login/register buttons)\n- Implementar loading states\n- Agregar validación frontend de password strength\n- Integrar con sistema i18n (EN/ES)\n\n## Acceptance Criteria\n- [ ] AuthContext expone signIn, signOut, session\n- [ ] RegisterForm valida email y password en tiempo real\n- [ ] Password strength meter visible y funcional\n- [ ] LoginForm muestra errores genéricos\n- [ ] ForgotPasswordForm no revela si email existe\n- [ ] ResetPasswordForm valida token y permite reset\n- [ ] Todos los forms responsive y accesibles (WCAG 2.1 AA)\n- [ ] Loading states visibles durante operaciones\n- [ ] Mensajes traducidos EN/ES\n\n## Referencias\nRef: .issues/BET-15_shaping_solution.md (Section 9.6)",
+      "priority": 2,
+      "labels": ["frontend", "ui", "auth"]
+    },
+    {
+      "title": "Fase 5: Auth.js Configuration y Middleware",
+      "description": "## Objetivo\nConfigurar Auth.js con Credentials Provider y crear middleware para protección de rutas.\n\n## Parte de\nBET-15: Identidad Tradicional (Email + Contraseña)\n\n## Tareas\n- Crear archivo lib/auth.ts con configuración Auth.js\n- Configurar Credentials Provider\n- Implementar callbacks (JWT, session)\n- Configurar páginas custom (signIn, error)\n- Crear middleware.ts para route protection\n- Proteger rutas /dashboard y /admin\n- Configurar cookies (HttpOnly, Secure, SameSite)\n- Implementar session validation\n\n## Acceptance Criteria\n- [ ] Auth.js configurado con Credentials Provider\n- [ ] Callbacks JWT y session funcionando\n- [ ] Middleware protege rutas correctamente\n- [ ] Usuarios no autenticados redirigidos a landing\n- [ ] Cookies configuradas con flags de seguridad\n- [ ] Session validation <10ms\n- [ ] No hay flickering en UI durante validación\n\n## Referencias\nRef: .issues/BET-15_shaping_solution.md (Section 9.4, 9.5)",
+      "priority": 2,
+      "labels": ["frontend", "backend", "auth", "middleware"]
+    },
+    {
+      "title": "Fase 6: Email Service - Password Reset",
+      "description": "## Objetivo\nConfigurar servicio de email para envío de tokens de password reset.\n\n## Parte de\nBET-15: Identidad Tradicional (Email + Contraseña)\n\n## Tareas\n- Configurar Django email backend (console para dev, SMTP para prod)\n- Crear template HTML para password reset email\n- Implementar servicio de generación de tokens seguros\n- Implementar envío de email con link de reset\n- Configurar rate limiting para envío de emails\n- Agregar retry logic para fallos de envío\n- Logging de emails enviados\n\n## Acceptance Criteria\n- [ ] Email backend configurado correctamente\n- [ ] Template HTML responsive y branded\n- [ ] Tokens generados son criptográficamente seguros\n- [ ] Emails se envían exitosamente\n- [ ] Link de reset con token en path (no query params)\n- [ ] Rate limiting previene spam de emails\n- [ ] Emails logeados para auditoría\n- [ ] Desarrollo usa console backend\n\n## Referencias\nRef: .issues/BET-15_shaping_solution.md (Section 9.8)",
+      "priority": 2,
+      "labels": ["backend", "email", "auth"]
+    },
+    {
+      "title": "Fase 7: Testing y Validación de Seguridad",
+      "description": "## Objetivo\nEjecutar testing completo: funcional, seguridad, performance y UX.\n\n## Parte de\nBET-15: Identidad Tradicional (Email + Contraseña)\n\n## Testing Funcional\n- [ ] Registro exitoso con datos válidos\n- [ ] Email duplicado rechazado\n- [ ] Contraseña débil rechazada\n- [ ] Login exitoso con credenciales válidas\n- [ ] Login fallido muestra error genérico\n- [ ] Password reset flow completo\n- [ ] Token expira correctamente\n- [ ] Token de un solo uso\n\n## Testing de Seguridad\n- [ ] Passwords hasheadas con Argon2id\n- [ ] No passwords en texto plano en BD\n- [ ] Cookies HttpOnly, Secure, SameSite\n- [ ] JWT firmado correctamente\n- [ ] Rate limiting funciona\n- [ ] Anti-enumeration efectivo\n- [ ] Timing-safe comparisons\n- [ ] CSRF protection activo\n\n## Testing de Performance\n- [ ] Password hashing <500ms\n- [ ] Session validation <10ms\n- [ ] Login flow <2s\n- [ ] Registration flow <3s\n- [ ] Email enviado <5s\n\n## Testing de UX\n- [ ] Forms responsive\n- [ ] Accesibilidad WCAG 2.1 AA\n- [ ] Keyboard navigation\n- [ ] Screen reader compatible\n- [ ] Mensajes traducidos\n\n## Referencias\nRef: .issues/BET-15_shaping_solution.md (Section 11)",
+      "priority": 2,
+      "labels": ["testing", "qa", "security"]
+    },
+    {
+      "title": "Fase 8: Documentación y Preparación para Deploy",
+      "description": "## Objetivo\nDocumentar sistema de autenticación y preparar para producción.\n\n## Parte de\nBET-15: Identidad Tradicional (Email + Contraseña)\n\n## Tareas\n- Crear .env.example completo (frontend y backend)\n- Documentar endpoints de API (Swagger/OpenAPI)\n- Actualizar README con sección de autenticación\n- Documentar password requirements\n- Documentar decisiones de seguridad en código\n- Crear guía de troubleshooting\n- Verificar que no hay secrets en repo\n- Preparar checklist de deploy\n- Documentar configuración de email provider para producción\n\n## Acceptance Criteria\n- [ ] .env.example completo con todos los placeholders\n- [ ] API endpoints documentados\n- [ ] README actualizado con setup instructions\n- [ ] Password requirements documentados\n- [ ] Código crítico comentado\n- [ ] Guía de troubleshooting creada\n- [ ] Git history limpio (sin secrets)\n- [ ] Checklist de deploy completo\n- [ ] Email provider configurado para prod\n\n## Referencias\nRef: .issues/BET-15_shaping_solution.md (Section 12, 13)",
+      "priority": 3,
+      "labels": ["documentation", "devops"]
+    }
+  ]
+}

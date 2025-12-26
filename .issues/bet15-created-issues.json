@@ -1,0 +1,50 @@
+[
+  {
+    "id": "19e9a9b3-ec56-40c3-a8e2-8755b344f189",
+    "identifier": "BET-16",
+    "title": "Fase 1: Setup y Configuración de Dependencias",
+    "url": "https://linear.app/betancourt-website/issue/BET-16/fase-1-setup-y-configuracion-de-dependencias"
+  },
+  {
+    "id": "ff0e0244-16b9-49e7-a0d3-bcb2bbe72a4c",
+    "identifier": "BET-17",
+    "title": "Fase 2: Modelos de Base de Datos y Migraciones",
+    "url": "https://linear.app/betancourt-website/issue/BET-17/fase-2-modelos-de-base-de-datos-y-migraciones"
+  },
+  {
+    "id": "8f7bb0d2-96f3-467d-9760-2de1bcb354e0",
+    "identifier": "BET-18",
+    "title": "Fase 3: Backend API - Endpoints de Autenticación",
+    "url": "https://linear.app/betancourt-website/issue/BET-18/fase-3-backend-api-endpoints-de-autenticacion"
+  },
+  {
+    "id": "388bca41-e60c-4e0e-b7a7-1d6f093a6c34",
+    "identifier": "BET-19",
+    "title": "Fase 4: Frontend - Formularios y Componentes UI",
+    "url": "https://linear.app/betancourt-website/issue/BET-19/fase-4-frontend-formularios-y-componentes-ui"
+  },
+  {
+    "id": "a135e7d6-a9f2-4fa1-8436-935d6d47c39b",
+    "identifier": "BET-20",
+    "title": "Fase 5: Auth.js Configuration y Middleware",
+    "url": "https://linear.app/betancourt-website/issue/BET-20/fase-5-authjs-configuration-y-middleware"
+  },
+  {
+    "id": "78fca79e-5fdf-47e6-a04c-b08443968f29",
+    "identifier": "BET-21",
+    "title": "Fase 6: Email Service - Password Reset",
+    "url": "https://linear.app/betancourt-website/issue/BET-21/fase-6-email-service-password-reset"
+  },
+  {
+    "id": "5adc1e5b-6c44-483d-a1ac-660836dfdebf",
+    "identifier": "BET-22",
+    "title": "Fase 7: Testing y Validación de Seguridad",
+    "url": "https://linear.app/betancourt-website/issue/BET-22/fase-7-testing-y-validacion-de-seguridad"
+  },
+  {
+    "id": "3ff9e54b-3729-46f7-94ef-356a0a5e9b18",
+    "identifier": "BET-23",
+    "title": "Fase 8: Documentación y Preparación para Deploy",
+    "url": "https://linear.app/betancourt-website/issue/BET-23/fase-8-documentacion-y-preparacion-para-deploy"
+  }
+]
