@@ -1,0 +1,50 @@
+[
+  {
+    "id": "d570d586-4a34-4eab-b8d9-06ec527a6bcd",
+    "identifier": "BET-7",
+    "title": "Fase 1: Setup y Configuración de Dependencias",
+    "url": "https://linear.app/betancourt-website/issue/BET-7/fase-1-setup-y-configuracion-de-dependencias"
+  },
+  {
+    "id": "6dd79f27-f1fc-409e-8a95-9c84cac935d5",
+    "identifier": "BET-8",
+    "title": "Fase 2: Infraestructura de Base de Datos",
+    "url": "https://linear.app/betancourt-website/issue/BET-8/fase-2-infraestructura-de-base-de-datos"
+  },
+  {
+    "id": "a9c7c5ec-303a-4150-b808-abb74ccd2613",
+    "identifier": "BET-9",
+    "title": "Fase 3: Configuración de Auth.js y Proveedores OAuth",
+    "url": "https://linear.app/betancourt-website/issue/BET-9/fase-3-configuracion-de-authjs-y-proveedores-oauth"
+  },
+  {
+    "id": "8939dd63-52d3-4389-b6f2-2c53bb21c78a",
+    "identifier": "BET-10",
+    "title": "Fase 4: Componentes Frontend de Autenticación",
+    "url": "https://linear.app/betancourt-website/issue/BET-10/fase-4-componentes-frontend-de-autenticacion"
+  },
+  {
+    "id": "8e5b1936-043c-4a56-843d-41828aee38e2",
+    "identifier": "BET-11",
+    "title": "Fase 5: Protección de Rutas y Middleware",
+    "url": "https://linear.app/betancourt-website/issue/BET-11/fase-5-proteccion-de-rutas-y-middleware"
+  },
+  {
+    "id": "d21b8efc-8881-4357-948f-aefd6b18fe05",
+    "identifier": "BET-12",
+    "title": "Fase 6: Integración Backend Django",
+    "url": "https://linear.app/betancourt-website/issue/BET-12/fase-6-integracion-backend-django"
+  },
+  {
+    "id": "a4a359fd-7f47-4d12-9349-dec13f860595",
+    "identifier": "BET-13",
+    "title": "Fase 7: Testing y Validación de Calidad",
+    "url": "https://linear.app/betancourt-website/issue/BET-13/fase-7-testing-y-validacion-de-calidad"
+  },
+  {
+    "id": "03585803-cacf-4397-9c81-043a5923a9c1",
+    "identifier": "BET-14",
+    "title": "Fase 8: Documentación y Preparación para Deploy",
+    "url": "https://linear.app/betancourt-website/issue/BET-14/fase-8-documentacion-y-preparacion-para-deploy"
+  }
+]

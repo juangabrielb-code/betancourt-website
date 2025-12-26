@@ -1,0 +1,52 @@
+{
+  "phases": [
+    {
+      "title": "Fase 1: Setup y Configuración de Dependencias",
+      "description": "## Objetivo\nInstalar y configurar todas las dependencias necesarias para Auth.js y la integración con PostgreSQL.\n\n## Parte de\nBET-5: Social Authentication\n\n## Tareas\n- Instalar Auth.js (NextAuth.js v5)\n- Instalar Prisma como ORM\n- Instalar adaptador de Prisma para Auth.js\n- Configurar variables de entorno base\n- Generar AUTH_SECRET\n\n## Acceptance Criteria\n- [ ] Todas las dependencias instaladas correctamente\n- [ ] No hay conflictos de versiones\n- [ ] Archivo .env.local creado con placeholders\n- [ ] AUTH_SECRET generado y configurado\n\n## Referencias\nRef: .issues/BET-5_shaping_solution.md (Section 9.1)",
+      "priority": 1,
+      "labels": ["backend", "frontend"]
+    },
+    {
+      "title": "Fase 2: Infraestructura de Base de Datos",
+      "description": "## Objetivo\nConfigurar el schema de base de datos para autenticación OAuth con Prisma.\n\n## Parte de\nBET-5: Social Authentication\n\n## Tareas\n- Crear schema de Prisma con tablas: User, Account, Session, VerificationToken\n- Generar migraciones iniciales\n- Aplicar migraciones a PostgreSQL\n- Verificar creación de tablas\n- Configurar índices para optimización\n\n## Acceptance Criteria\n- [ ] Schema de Prisma define todas las tablas necesarias\n- [ ] Migraciones aplicadas sin errores\n- [ ] Tablas creadas en PostgreSQL\n- [ ] Índices configurados correctamente\n- [ ] Constraints y relaciones funcionando\n\n## Referencias\nRef: .issues/BET-5_shaping_solution.md (Section 9.3)",
+      "priority": 1,
+      "labels": ["backend", "database"]
+    },
+    {
+      "title": "Fase 3: Configuración de Auth.js y Proveedores OAuth",
+      "description": "## Objetivo\nConfigurar Auth.js con los 4 proveedores OAuth: Google, Apple, Facebook, Microsoft.\n\n## Parte de\nBET-5: Social Authentication\n\n## Tareas\n- Crear archivo de configuración de Auth.js\n- Configurar Google OAuth provider\n- Configurar Facebook OAuth provider\n- Configurar Apple OAuth provider\n- Configurar Microsoft Entra ID provider\n- Configurar callbacks (JWT, session, authorization)\n- Configurar estrategia de sesión JWT\n\n## Acceptance Criteria\n- [ ] Archivo auth.ts creado y configurado\n- [ ] Los 4 proveedores OAuth configurados\n- [ ] Scopes mínimos configurados (openid, email, profile)\n- [ ] Callbacks implementados correctamente\n- [ ] Sesiones JWT funcionando\n- [ ] Route handlers creados en /api/auth/[...nextauth]\n\n## Referencias\nRef: .issues/BET-5_shaping_solution.md (Section 9.4)",
+      "priority": 1,
+      "labels": ["backend", "auth", "oauth"]
+    },
+    {
+      "title": "Fase 4: Componentes Frontend de Autenticación",
+      "description": "## Objetivo\nCrear todos los componentes UI necesarios para el flujo de autenticación social.\n\n## Parte de\nBET-5: Social Authentication\n\n## Tareas\n- Crear AuthContext provider\n- Crear AuthModal component con 4 botones sociales\n- Integrar con Navbar (login button / user profile)\n- Agregar iconos de proveedores sociales\n- Implementar estados de loading y error\n- Integrar con sistema de i18n existente\n\n## Acceptance Criteria\n- [ ] AuthContext expone session, signIn, signOut\n- [ ] AuthModal renderiza 4 botones estilizados\n- [ ] Navbar muestra login button o user profile según estado\n- [ ] Loading states visibles durante OAuth redirect\n- [ ] Error messages traducidos (EN/ES)\n- [ ] Diseño responsive\n- [ ] Accesible (WCAG 2.1 AA)\n\n## Referencias\nRef: .issues/BET-5_shaping_solution.md (Section 9.6)",
+      "priority": 2,
+      "labels": ["frontend", "ui", "auth"]
+    },
+    {
+      "title": "Fase 5: Protección de Rutas y Middleware",
+      "description": "## Objetivo\nImplementar middleware para proteger rutas /dashboard y /admin.\n\n## Parte de\nBET-5: Social Authentication\n\n## Tareas\n- Crear middleware.ts en raíz del proyecto\n- Implementar validación de sesión\n- Configurar matcher patterns para rutas protegidas\n- Implementar redirección a landing page\n- Actualizar páginas /dashboard y /admin con validación\n- Agregar loading states durante verificación\n\n## Acceptance Criteria\n- [ ] Middleware valida sesión en cada request\n- [ ] Usuarios no autenticados redirigidos a /\n- [ ] Usuarios autenticados acceden a /dashboard\n- [ ] Rutas públicas no afectadas\n- [ ] No hay flickering en la UI\n- [ ] Performance <10ms para validación\n\n## Referencias\nRef: .issues/BET-5_shaping_solution.md (Section 9.5)",
+      "priority": 2,
+      "labels": ["frontend", "backend", "auth", "middleware"]
+    },
+    {
+      "title": "Fase 6: Integración Backend Django",
+      "description": "## Objetivo\nPermitir que Django acceda a los datos de usuarios creados por Auth.js.\n\n## Parte de\nBET-5: Social Authentication\n\n## Tareas\n- Crear app Django 'authentication'\n- Definir modelos User, Account (managed=False)\n- Configurar relaciones entre modelos\n- Registrar en Django Admin (opcional)\n- Actualizar INSTALLED_APPS\n- Verificar acceso read-only desde Django\n\n## Acceptance Criteria\n- [ ] Modelos Django creados con managed=False\n- [ ] Django puede leer usuarios de la BD\n- [ ] No hay conflictos de ORM con Prisma\n- [ ] Admin de Django muestra usuarios (opcional)\n- [ ] Relaciones funcionan correctamente\n\n## Referencias\nRef: .issues/BET-5_shaping_solution.md (Section 9.7)",
+      "priority": 3,
+      "labels": ["backend", "django"]
+    },
+    {
+      "title": "Fase 7: Testing y Validación de Calidad",
+      "description": "## Objetivo\nAsegurar que la implementación cumple con todos los criterios de aceptación y funciona correctamente.\n\n## Parte de\nBET-5: Social Authentication\n\n## Testing OAuth Flow\n- [ ] Google login redirige a accounts.google.com\n- [ ] Facebook login redirige a facebook.com/login\n- [ ] Apple login redirige a appleid.apple.com\n- [ ] Microsoft login redirige a login.microsoftonline.com\n- [ ] Autorización exitosa redirige a /dashboard\n- [ ] User data guardado en BD\n- [ ] Login repetido no crea duplicados\n\n## Testing Session Management\n- [ ] Sesión persiste después de cerrar navegador\n- [ ] Logout invalida sesión completamente\n- [ ] Sesiones expiradas redirigen a login\n\n## Testing Route Protection\n- [ ] /dashboard protegido correctamente\n- [ ] /admin protegido correctamente\n- [ ] Rutas públicas accesibles\n\n## Testing Security\n- [ ] Cookies HttpOnly, Secure, SameSite\n- [ ] CSRF protection activo\n- [ ] No hay secretos en client-side\n\n## Testing UX\n- [ ] Loading states visibles\n- [ ] Error messages en EN/ES\n- [ ] Responsive design funciona\n- [ ] Keyboard navigation funciona\n\n## Referencias\nRef: .issues/BET-5_shaping_solution.md (Section 12)",
+      "priority": 2,
+      "labels": ["testing", "qa"]
+    },
+    {
+      "title": "Fase 8: Documentación y Preparación para Deploy",
+      "description": "## Objetivo\nDocumentar todo el sistema de autenticación y prepararlo para producción.\n\n## Parte de\nBET-5: Social Authentication\n\n## Tareas\n- Crear .env.example con todas las variables\n- Documentar setup de OAuth providers (Google, Facebook, Apple, Microsoft)\n- Actualizar README con sección de autenticación\n- Documentar decisiones de seguridad en código\n- Crear guía de troubleshooting\n- Verificar que no hay secretos en el repo\n- Preparar checklist de deploy\n\n## Acceptance Criteria\n- [ ] .env.example completo y actualizado\n- [ ] Documentación de OAuth setup para cada provider\n- [ ] README actualizado\n- [ ] Código comentado en secciones críticas\n- [ ] Guía de troubleshooting creada\n- [ ] Git history limpio (sin secretos)\n- [ ] Checklist de deploy completo\n\n## Referencias\nRef: .issues/BET-5_shaping_solution.md (Section 11, 13)",
+      "priority": 3,
+      "labels": ["documentation", "devops"]
+    }
+  ]
+}
