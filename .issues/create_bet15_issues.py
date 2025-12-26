@@ -2,11 +2,16 @@
 import json
 import requests
 import time
+import os
 
-API_KEY = "lin_api_hbvqBmTZoqLCPC4VDBvqs3X9QANHbNKD68GVDsz7"
+# Read API key from environment variable for security
+API_KEY = os.getenv("LINEAR_API_KEY", "")
 TEAM_ID = "fcbc0918-e222-4064-bf18-c8953761ac30"
 PARENT_ISSUE_ID = "466801fc-a6a7-4b0d-8915-8341fd8f1a33"  # BET-15
 API_URL = "https://api.linear.app/graphql"
+
+if not API_KEY:
+    raise ValueError("LINEAR_API_KEY environment variable is not set")
 
 headers = {
     "Content-Type": "application/json",
