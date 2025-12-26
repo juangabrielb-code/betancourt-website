@@ -99,6 +99,13 @@ DATABASES = {
 # https://docs.djangoproject.com/en/5.2/topics/auth/customizing/#substituting-a-custom-user-model
 AUTH_USER_MODEL = 'authentication.User'
 
+# Authentication Backends
+# https://docs.djangoproject.com/en/5.2/ref/settings/#authentication-backends
+AUTHENTICATION_BACKENDS = [
+    'authentication.backends.EmailBackend',  # Email-based authentication
+    'django.contrib.auth.backends.ModelBackend',  # Fallback to default
+]
+
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
 
