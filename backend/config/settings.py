@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'corsheaders',
 
     # Local apps
+    'authentication',  # Custom User Model (BET-17)
     'payments',
 ]
 
@@ -93,6 +94,10 @@ DATABASES = {
     }
 }
 
+
+# Custom User Model
+# https://docs.djangoproject.com/en/5.2/topics/auth/customizing/#substituting-a-custom-user-model
+AUTH_USER_MODEL = 'authentication.User'
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators

@@ -6,7 +6,7 @@ Arquitectura diseñada para manejar:
 """
 
 from django.db import models
-from django.contrib.auth.models import User
+from django.conf import settings
 from django.core.validators import MinValueValidator, MaxValueValidator
 from decimal import Decimal
 from django.utils import timezone
@@ -159,7 +159,7 @@ class Order(models.Model):
 
     # Relaciones
     user = models.ForeignKey(
-        User,
+        settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name='orders',
         verbose_name="Usuario"
