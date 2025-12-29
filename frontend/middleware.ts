@@ -16,7 +16,7 @@
  * Related: BET-16 (Setup), BET-20 (Middleware Implementation)
  */
 
-import { auth } from "@/auth"
+import { auth } from "./auth"
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 

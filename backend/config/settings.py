@@ -198,4 +198,46 @@ SIMPLE_JWT = {
 }
 
 # Email Configuration
+# Development: Console backend (prints emails to console)
+# Production: SMTP backend (sends real emails)
 EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
+
+# Email Settings
+EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
+EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
+EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@betancourtaudio.com')
+SERVER_EMAIL = DEFAULT_FROM_EMAIL
+
+# Frontend URLs (for email links)
+FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:3000')
+
+# Password Reset Configuration
+PASSWORD_RESET_TOKEN_EXPIRY_HOURS = config('PASSWORD_RESET_TOKEN_EXPIRY_HOURS', default=1, cast=int)
+
+# Production Security Settings
+# These settings are automatically enabled when DEBUG=False
+if not DEBUG:
+    # HTTPS/SSL Settings
+    SECURE_SSL_REDIRECT = True  # Redirect all HTTP requests to HTTPS
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')  # For reverse proxy
+
+    # Cookie Security
+    SESSION_COOKIE_SECURE = True  # Send session cookie only over HTTPS
+    CSRF_COOKIE_SECURE = True  # Send CSRF cookie only over HTTPS
+    SESSION_COOKIE_HTTPONLY = True  # Prevent JavaScript access to session cookie
+    CSRF_COOKIE_HTTPONLY = True  # Prevent JavaScript access to CSRF cookie
+    SESSION_COOKIE_SAMESITE = 'Strict'  # CSRF protection
+    CSRF_COOKIE_SAMESITE = 'Strict'  # CSRF protection
+
+    # HSTS (HTTP Strict Transport Security)
+    SECURE_HSTS_SECONDS = 31536000  # 1 year
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+
+    # Content Security
+    SECURE_CONTENT_TYPE_NOSNIFF = True  # Prevent MIME type sniffing
+    SECURE_BROWSER_XSS_FILTER = True  # Enable browser XSS filter
+    X_FRAME_OPTIONS = 'DENY'  # Prevent clickjacking

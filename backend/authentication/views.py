@@ -33,6 +33,7 @@ from .serializers import (
     ResetPasswordSerializer,
     ChangePasswordSerializer,
 )
+from .email_service import send_password_reset_email, send_password_changed_notification
 
 
 def get_tokens_for_user(user):
@@ -255,18 +256,19 @@ def forgot_password(request):
         expiry_hours = config('PASSWORD_RESET_TOKEN_EXPIRY_HOURS', default=1, cast=int)
         reset_token = PasswordResetToken.create_token(user, expiry_hours=expiry_hours)
 
-        # TODO (BET-21): Send email with reset link
-        # send_password_reset_email(user, reset_token.token)
+        # Send password reset email
+        email_sent = send_password_reset_email(user, reset_token.token)
 
-        # For development: Log token (REMOVE IN PRODUCTION)
+        # For development: Log token to console (in addition to email)
         if settings.DEBUG:
             print(f"\n{'='*60}")
             print(f"PASSWORD RESET TOKEN (DEV ONLY)")
             print(f"{'='*60}")
             print(f"Email: {user.email}")
             print(f"Token: {reset_token.token}")
-            print(f"Reset URL: http://localhost:3000/reset-password?token={reset_token.token}")
+            print(f"Reset URL: {settings.FRONTEND_URL}/reset-password?token={reset_token.token}")
             print(f"Expires: {reset_token.expires_at}")
+            print(f"Email Sent: {'✓' if email_sent else '✗'}")
             print(f"{'='*60}\n")
 
     except User.DoesNotExist:
@@ -385,6 +387,9 @@ def change_password(request):
     # Set new password
     user.set_password(new_password)
     user.save()
+
+    # Send notification email (security feature)
+    send_password_changed_notification(user)
 
     return Response({
         'message': 'Password changed successfully'
