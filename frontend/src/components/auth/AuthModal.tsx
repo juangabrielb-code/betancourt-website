@@ -69,24 +69,24 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     <AnimatePresence>
       {/* Overlay Container - Optimizado para centrado vertical */}
       <div className="fixed inset-0 z-50 overflow-y-auto">
-        {/* Backdrop */}
+        {/* Backdrop - z-0 to stay behind modal content */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
-          className="fixed inset-0 bg-j-dark-bg/80 dark:bg-black/80 backdrop-blur-sm"
+          className="fixed inset-0 z-0 bg-j-dark-bg/80 dark:bg-black/80 backdrop-blur-sm"
         />
 
         {/* Centering Container con padding responsivo */}
-        <div className="flex min-h-full items-center justify-center p-4 sm:p-6 md:p-8">
+        <div className="relative z-10 flex min-h-full items-center justify-center p-4 sm:p-6 md:p-8">
           {/* Modal Content */}
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ duration: 0.2, ease: 'easeOut' }}
-            className="relative w-full max-w-md my-8"
+            className="w-full max-w-md my-8"
           >
             <GlassCard className="overflow-hidden shadow-2xl">
               {/* Close Button */}
