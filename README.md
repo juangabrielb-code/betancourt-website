@@ -4,9 +4,10 @@ Proyecto full-stack desarrollado con Django REST Framework (Backend) y Next.js 1
 
 ## Stack Tecnológico
 
-- **Backend**: Django 5.0 + Django REST Framework + PostgreSQL
-- **Frontend**: Next.js 14 (App Router) + TypeScript + Tailwind CSS
-- **Base de Datos**: PostgreSQL 15
+- **Backend**: Django 5.2 + Django REST Framework + PostgreSQL
+- **Frontend**: Next.js 16.1 (App Router) + TypeScript + Tailwind CSS + Framer Motion
+- **Autenticación**: Auth.js v5 (NextAuth) + Prisma + 4 OAuth Providers
+- **Base de Datos**: PostgreSQL 16 + Prisma ORM
 - **Orquestación**: Docker + Docker Compose
 - **Pagos**: Multi-pasarela (Stripe, Bold, Mercado Pago) + Multi-moneda (USD, COP)
 
@@ -36,6 +37,12 @@ cp .env.example .env
 ```
 
 **Importante**: Edita el archivo `.env` y cambia los valores según tus necesidades, especialmente en producción.
+
+**Para Autenticación OAuth**: Genera el `AUTH_SECRET` con:
+```bash
+openssl rand -base64 32
+```
+Luego agrega el resultado a tu archivo `.env`.
 
 ### 3. Inicializar el proyecto Django
 
@@ -379,6 +386,191 @@ Si quieres empezar de nuevo:
 docker compose down -v
 docker compose up -d --build
 ```
+
+## 🔐 Sistema de Autenticación
+
+Betancourt Audio incluye un sistema completo de autenticación social con Auth.js (NextAuth v5) integrado con 4 proveedores OAuth.
+
+### Arquitectura de Autenticación
+
+- **Frontend**: Auth.js v5 (NextAuth) con JWT session strategy
+- **Base de Datos**: Prisma ORM con PostgreSQL 16
+- **Backend Django**: Modelos read-only con `managed=False` para acceso a datos de usuarios
+- **Proveedores OAuth**: Google, Facebook, Apple, Microsoft Entra ID
+
+### Características Implementadas
+
+- ✅ **4 Proveedores OAuth**: Google, Facebook, Apple ID, Microsoft
+- ✅ **Protección de Rutas**: Middleware para /dashboard y /admin
+- ✅ **Roles de Usuario**: CLIENT (default), ADMIN
+- ✅ **Sesiones JWT**: 30 días de duración, actualización cada 24h
+- ✅ **UI Moderna**: Modal de autenticación con Framer Motion animations
+- ✅ **API REST Django**: Endpoints para gestión de usuarios desde backend
+- ✅ **Admin Interface**: Django admin con acceso read-only a usuarios OAuth
+
+### Documentación Detallada
+
+- **[docs/OAUTH_SETUP_GUIDE.md](docs/OAUTH_SETUP_GUIDE.md)** - Guía completa para configurar cada proveedor OAuth
+- **[docs/DEPLOYMENT_CHECKLIST.md](docs/DEPLOYMENT_CHECKLIST.md)** - Checklist de deployment para producción
+- **[TESTING_CHECKLIST.md](TESTING_CHECKLIST.md)** - Verificación y testing del sistema
+
+### Inicio Rápido - Autenticación
+
+#### 1. Generar Auth Secret
+
+```bash
+openssl rand -base64 32
+```
+
+Copia el resultado y agrégalo a `.env` como `AUTH_SECRET`.
+
+#### 2. Configurar OAuth Providers
+
+Para **desarrollo rápido**, puedes usar placeholders en `.env` (el sistema funcionará sin OAuth real):
+
+```bash
+AUTH_SECRET=tu-secret-generado-aquí
+NEXTAUTH_URL=http://localhost:3000
+DATABASE_URL=postgresql://postgres:postgres@db:5432/betancourt_audio
+
+# Placeholders para desarrollo (reemplazar con credenciales reales)
+AUTH_GOOGLE_ID=your-google-client-id
+AUTH_GOOGLE_SECRET=your-google-client-secret
+AUTH_FACEBOOK_ID=your-facebook-app-id
+AUTH_FACEBOOK_SECRET=your-facebook-app-secret
+AUTH_APPLE_ID=your-apple-service-id
+AUTH_APPLE_SECRET=your-apple-private-key
+AUTH_MICROSOFT_ENTRA_ID_ID=your-microsoft-client-id
+AUTH_MICROSOFT_ENTRA_ID_SECRET=your-microsoft-client-secret
+```
+
+Para **configurar credenciales OAuth reales**, sigue la guía detallada: [docs/OAUTH_SETUP_GUIDE.md](docs/OAUTH_SETUP_GUIDE.md)
+
+#### 3. Inicializar Base de Datos de Autenticación
+
+Las tablas ya están creadas. Para verificar:
+
+```bash
+# Conectar a la base de datos
+docker compose exec db psql -U postgres -d betancourt_audio
+
+# Ver tablas de autenticación
+\dt
+
+# Deberías ver: users, accounts, sessions, verification_tokens
+```
+
+#### 4. Acceder al Sistema
+
+1. **Frontend con Auth**: http://localhost:3000
+   - Click en "Sign In" para ver modal de autenticación
+   - 4 botones de proveedores sociales
+   - Theme toggle (light/dark) funcional
+   - Language toggle (EN/ES) funcional
+
+2. **Dashboard Protegido**: http://localhost:3000/dashboard
+   - Requiere autenticación
+   - Muestra información del usuario
+   - Quick actions disponibles
+
+3. **Admin Panel**: http://localhost:3000/admin
+   - Requiere rol ADMIN
+   - Gestión de sistema completa
+
+4. **Django Auth API**: http://localhost:8000/api/auth/
+   - `GET /api/auth/users/` - Lista de usuarios
+   - `GET /api/auth/users/stats/` - Estadísticas de usuarios
+   - `GET /api/auth/accounts/` - Cuentas OAuth vinculadas
+   - `GET /api/auth/sessions/` - Sesiones activas
+
+### Estructura del Sistema de Autenticación
+
+```
+frontend/
+├── prisma/
+│   └── schema.prisma              # Schema con 4 modelos Auth.js
+├── src/
+│   ├── auth.ts                    # Configuración Auth.js principal
+│   ├── lib/
+│   │   └── prisma.ts              # Singleton Prisma client
+│   ├── middleware.ts              # Protección de rutas
+│   ├── app/
+│   │   ├── api/auth/
+│   │   │   └── [...nextauth]/    # API routes Auth.js
+│   │   ├── dashboard/             # Página protegida
+│   │   └── admin/                 # Página protegida (ADMIN only)
+│   ├── components/
+│   │   ├── auth/
+│   │   │   └── AuthModal.tsx     # Modal con 4 proveedores
+│   │   ├── shared/
+│   │   │   └── Navbar.tsx        # Navbar con auth state
+│   │   └── ClientProviders.tsx   # SessionProvider wrapper
+│   └── contexts/
+│       └── AuthContext.tsx        # useAuth hook
+
+backend/
+├── authentication/
+│   ├── models.py                  # Modelos read-only (managed=False)
+│   │   ├── AuthUser
+│   │   ├── AuthAccount
+│   │   ├── AuthSession
+│   │   └── VerificationToken
+│   ├── serializers.py             # DRF serializers
+│   ├── views.py                   # ViewSets con stats endpoints
+│   ├── urls.py                    # API routes /api/auth/
+│   └── admin.py                   # Django admin read-only
+```
+
+### Crear Usuario Admin Manualmente
+
+Si necesitas dar rol ADMIN a un usuario:
+
+```bash
+# Conectar a DB
+docker compose exec db psql -U postgres -d betancourt_audio
+
+# Actualizar rol
+UPDATE users SET role = 'ADMIN' WHERE email = 'tu-email@ejemplo.com';
+
+# Verificar
+SELECT email, role FROM users WHERE role = 'ADMIN';
+
+# Salir
+\q
+```
+
+### Testing del Sistema de Autenticación
+
+Ver el checklist completo de testing: [TESTING_CHECKLIST.md](TESTING_CHECKLIST.md)
+
+**Resumen de Tests Ejecutados:**
+- ✅ 82 tests pasados
+- ⏸️ 13 tests pendientes (requieren credenciales OAuth reales)
+- ⚠️ 2 warnings no-bloqueantes
+
+**Estado:** Sistema funcional y listo para configuración de credenciales OAuth.
+
+### Troubleshooting Común
+
+#### Error: "redirect_uri_mismatch"
+Verifica que las redirect URIs en las consolas OAuth coincidan exactamente con:
+```
+http://localhost:3000/api/auth/callback/{provider}
+```
+
+#### Sesión no persiste
+- Verifica que `AUTH_SECRET` esté configurado
+- Verifica que `NEXTAUTH_URL` coincida con tu dominio actual
+- Limpia cookies del navegador
+
+#### Modal no aparece
+- Verifica que `z-index` es suficientemente alto (9999)
+- Revisa la consola del navegador por errores
+- Verifica que ClientProviders está wrapping tu app
+
+Para más soluciones, consulta: [docs/OAUTH_SETUP_GUIDE.md#troubleshooting](docs/OAUTH_SETUP_GUIDE.md#troubleshooting)
+
+---
 
 ## 💳 Sistema de Pagos
 

@@ -3,7 +3,7 @@ version: '3.8'
 services:
   # Servicio de Base de Datos PostgreSQL
   db:
-    image: postgres:15-alpine
+    image: postgres:16-alpine
     container_name: producer-hub-db
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -68,6 +68,18 @@ services:
       - NODE_ENV=development
       - NEXT_PUBLIC_API_URL=http://localhost:8000
       - WATCHPACK_POLLING=true
+      - DATABASE_URL=${DATABASE_URL:-postgresql://postgres:postgres@db:5432/betancourt_audio}
+      - AUTH_SECRET=${AUTH_SECRET}
+      - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
+      - AUTH_GOOGLE_ID=${AUTH_GOOGLE_ID}
+      - AUTH_GOOGLE_SECRET=${AUTH_GOOGLE_SECRET}
+      - AUTH_FACEBOOK_ID=${AUTH_FACEBOOK_ID}
+      - AUTH_FACEBOOK_SECRET=${AUTH_FACEBOOK_SECRET}
+      - AUTH_APPLE_ID=${AUTH_APPLE_ID}
+      - AUTH_APPLE_SECRET=${AUTH_APPLE_SECRET}
+      - AUTH_MICROSOFT_ENTRA_ID_ID=${AUTH_MICROSOFT_ENTRA_ID_ID}
+      - AUTH_MICROSOFT_ENTRA_ID_SECRET=${AUTH_MICROSOFT_ENTRA_ID_SECRET}
+      - AUTH_MICROSOFT_ENTRA_ID_TENANT_ID=${AUTH_MICROSOFT_ENTRA_ID_TENANT_ID:-common}
     depends_on:
       - backend
     networks:
