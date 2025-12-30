@@ -116,7 +116,6 @@ export const Navbar: React.FC<NavbarProps> = ({ onNavigate }) => {
       <AuthModal
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
-        defaultView="login"
       />
     </nav>
   );
