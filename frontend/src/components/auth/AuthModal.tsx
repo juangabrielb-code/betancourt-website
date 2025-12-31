@@ -200,68 +200,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuc
                   <span>{t.auth?.continueWithGoogle || 'Continue with Google'}</span>
                 </button>
 
-                {/* Facebook */}
-                <button
-                  type="button"
-                  onClick={() => handleSocialLogin('facebook')}
-                  disabled={oauthLoading !== null || formLoading}
-                  className="w-full flex items-center justify-center gap-3 py-2.5 px-4 rounded-xl border border-j-light-text/10 dark:border-white/10 bg-[#1877F2] hover:bg-[#166FE5] transition-colors text-sm font-medium text-white disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {oauthLoading === 'facebook' ? (
-                    <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                  ) : (
-                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                    </svg>
-                  )}
-                  <span>{t.auth?.continueWithFacebook || 'Continue with Facebook'}</span>
-                </button>
-
-                {/* Apple */}
-                <button
-                  type="button"
-                  onClick={() => handleSocialLogin('apple')}
-                  disabled={oauthLoading !== null || formLoading}
-                  className="w-full flex items-center justify-center gap-3 py-2.5 px-4 rounded-xl border border-j-light-text/10 dark:border-white/10 bg-black text-white hover:bg-gray-900 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {oauthLoading === 'apple' ? (
-                    <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                  ) : (
-                    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.74s2.57-.99 4.35-.74c.74.03 2.76.47 3.69 1.74-.06.03-2.2 1.32-2.18 3.92.02 2.85 2.53 3.94 2.59 3.98-.03.09-1.5 5.12-3.53 7.33zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.54 4.33-3.74 4.25z" />
-                    </svg>
-                  )}
-                  <span>{t.auth?.continueWithApple || 'Continue with Apple'}</span>
-                </button>
-
-                {/* Microsoft */}
-                <button
-                  type="button"
-                  onClick={() => handleSocialLogin('microsoft-entra-id')}
-                  disabled={oauthLoading !== null || formLoading}
-                  className="w-full flex items-center justify-center gap-3 py-2.5 px-4 rounded-xl border border-j-light-text/10 dark:border-white/10 bg-white hover:bg-gray-50 dark:bg-white/5 dark:hover:bg-white/10 transition-colors text-sm font-medium text-j-light-text dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {oauthLoading === 'microsoft-entra-id' ? (
-                    <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                  ) : (
-                    <svg className="w-5 h-5" viewBox="0 0 23 23">
-                      <path fill="#f35325" d="M0 0h11v11H0z"/>
-                      <path fill="#81bc06" d="M12 0h11v11H12z"/>
-                      <path fill="#05a6f0" d="M0 12h11v11H0z"/>
-                      <path fill="#ffba08" d="M12 12h11v11H12z"/>
-                    </svg>
-                  )}
-                  <span>{t.auth?.continueWithMicrosoft || 'Continue with Microsoft'}</span>
-                </button>
+                {/* TODO: Enable these buttons when providers are configured */}
+                {/* Facebook, Apple, Microsoft buttons commented out for now */}
               </div>
 
               {/* Divider */}

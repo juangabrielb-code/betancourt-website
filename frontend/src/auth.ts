@@ -1,9 +1,10 @@
 import NextAuth, { DefaultSession } from "next-auth"
 import { PrismaAdapter } from "@auth/prisma-adapter"
 import GoogleProvider from "next-auth/providers/google"
-import FacebookProvider from "next-auth/providers/facebook"
-import AppleProvider from "next-auth/providers/apple"
-import MicrosoftEntraIDProvider from "next-auth/providers/microsoft-entra-id"
+// TODO: Enable these providers when credentials are configured
+// import FacebookProvider from "next-auth/providers/facebook"
+// import AppleProvider from "next-auth/providers/apple"
+// import MicrosoftEntraIDProvider from "next-auth/providers/microsoft-entra-id"
 import { prisma } from "@/lib/prisma"
 
 // Extend the built-in session types
@@ -20,7 +21,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   // Configure Prisma adapter for database sessions
   adapter: PrismaAdapter(prisma),
 
-  // Configure OAuth providers
+  // Configure OAuth providers (only enabled providers with valid credentials)
   providers: [
     // Google OAuth Provider
     GoogleProvider({
@@ -35,24 +36,24 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       },
     }),
 
-    // Facebook OAuth Provider
-    FacebookProvider({
-      clientId: process.env.AUTH_FACEBOOK_ID!,
-      clientSecret: process.env.AUTH_FACEBOOK_SECRET!,
-    }),
+    // TODO: Enable Facebook when credentials are configured
+    // FacebookProvider({
+    //   clientId: process.env.AUTH_FACEBOOK_ID!,
+    //   clientSecret: process.env.AUTH_FACEBOOK_SECRET!,
+    // }),
 
-    // Apple OAuth Provider
-    AppleProvider({
-      clientId: process.env.AUTH_APPLE_ID!,
-      clientSecret: process.env.AUTH_APPLE_SECRET!,
-    }),
+    // TODO: Enable Apple when credentials are configured
+    // AppleProvider({
+    //   clientId: process.env.AUTH_APPLE_ID!,
+    //   clientSecret: process.env.AUTH_APPLE_SECRET!,
+    // }),
 
-    // Microsoft Entra ID (Azure AD) Provider
-    MicrosoftEntraIDProvider({
-      clientId: process.env.AUTH_MICROSOFT_ENTRA_ID_ID!,
-      clientSecret: process.env.AUTH_MICROSOFT_ENTRA_ID_SECRET!,
-      tenantId: process.env.AUTH_MICROSOFT_ENTRA_ID_TENANT_ID || "common",
-    }),
+    // TODO: Enable Microsoft when credentials are configured
+    // MicrosoftEntraIDProvider({
+    //   clientId: process.env.AUTH_MICROSOFT_ENTRA_ID_ID!,
+    //   clientSecret: process.env.AUTH_MICROSOFT_ENTRA_ID_SECRET!,
+    //   tenantId: process.env.AUTH_MICROSOFT_ENTRA_ID_TENANT_ID || "common",
+    // }),
   ],
 
   // Session configuration - using JWT strategy
