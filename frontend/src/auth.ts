@@ -1,11 +1,9 @@
 import NextAuth, { DefaultSession } from "next-auth"
-import { PrismaAdapter } from "@auth/prisma-adapter"
 import GoogleProvider from "next-auth/providers/google"
 // TODO: Enable these providers when credentials are configured
 // import FacebookProvider from "next-auth/providers/facebook"
 // import AppleProvider from "next-auth/providers/apple"
 // import MicrosoftEntraIDProvider from "next-auth/providers/microsoft-entra-id"
-import { prisma } from "@/lib/prisma"
 
 // Extend the built-in session types
 declare module "next-auth" {
@@ -18,8 +16,9 @@ declare module "next-auth" {
 }
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
-  // Configure Prisma adapter for database sessions
-  adapter: PrismaAdapter(prisma),
+  // Note: Using JWT strategy without database adapter for now
+  // TODO: Re-enable PrismaAdapter when database is properly configured
+  // adapter: PrismaAdapter(prisma),
 
   // Configure OAuth providers (only enabled providers with valid credentials)
   providers: [
@@ -66,10 +65,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   // Callbacks for customizing behavior
   callbacks: {
     // JWT callback - runs whenever a JWT is created or updated
-    async jwt({ token, user, account }) {
+    async jwt({ token, user, account, profile }) {
       // On sign in, add user ID and account info to token
       if (user) {
-        token.id = user.id
+        // Use sub from OAuth profile or generate a unique ID
+        token.id = user.id || token.sub || `oauth_${Date.now()}`
         token.role = "CLIENT" // Default role
       }
 
@@ -79,6 +79,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.providerAccountId = account.providerAccountId
       }
 
+      // Store profile info if available
+      if (profile) {
+        token.name = profile.name || token.name
+        token.email = profile.email || token.email
+        token.picture = (profile as any).picture || token.picture
+      }
+
       return token
     },
 
@@ -86,8 +93,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     async session({ session, token }) {
       // Add user ID and role to session
       if (session.user) {
-        session.user.id = token.id as string
-        session.user.role = token.role as string
+        session.user.id = (token.id || token.sub) as string
+        session.user.role = (token.role as string) || "CLIENT"
+        // Use token picture if available (from OAuth profile)
+        if (token.picture) {
+          session.user.image = token.picture as string
+        }
       }
 
       return session
