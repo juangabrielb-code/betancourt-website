@@ -94,3 +94,21 @@ body {
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 150ms;
 }
+
+/* Dashboard Layout Variables */
+:root {
+  --dashboard-sidebar-width: 16rem; /* 256px - w-64 */
+  --dashboard-mobile-header-height: 3.5rem; /* 56px */
+  --dashboard-mobile-bottom-nav-height: 4.5rem; /* 72px */
+
+  /* Z-index layering */
+  --z-sidebar: 30;
+  --z-mobile-header: 40;
+  --z-mobile-bottom-nav: 50;
+  --z-dropdown: 60;
+}
+
+/* Safe area for mobile devices */
+.safe-area-pb {
+  padding-bottom: env(safe-area-inset-bottom);
+}
