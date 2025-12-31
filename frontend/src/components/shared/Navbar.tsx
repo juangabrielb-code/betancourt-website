@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { signOut } from 'next-auth/react';
 import { Container, Button } from '../ui/UI';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -120,63 +121,95 @@ export const Navbar: React.FC<NavbarProps> = ({ onNavigate }) => {
               </svg>
             </div>
           ) : isAuthenticated && session?.user ? (
-            <div className="relative ml-2">
-              <button
-                onClick={() => setShowUserMenu(!showUserMenu)}
-                className="flex items-center gap-2 px-3 py-2 rounded-full bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/20 border border-black/5 dark:border-white/10 transition-all"
-              >
-                {session.user.image ? (
-                  <img
-                    src={session.user.image}
-                    alt={session.user.name || 'User'}
-                    className="w-6 h-6 rounded-full"
-                  />
-                ) : (
-                  <div className="w-6 h-6 rounded-full bg-warm-glow flex items-center justify-center text-white text-xs font-bold">
-                    {session.user.name?.charAt(0) || session.user.email?.charAt(0) || 'U'}
-                  </div>
-                )}
-                <span className="text-xs font-medium hidden sm:block">
-                  {session.user.name || session.user.email}
-                </span>
-                <svg
-                  className={`w-4 h-4 transition-transform ${showUserMenu ? 'rotate-180' : ''}`}
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
+            <div className="flex items-center gap-2 ml-2">
+              {/* Mi Cuenta Button - Direct link to dashboard */}
+              <Link href="/dashboard">
+                <button className="flex items-center gap-2 px-4 py-2 rounded-full bg-warm-glow text-white font-medium text-xs hover:opacity-90 transition-all shadow-lg shadow-warm-glow/20">
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                  </svg>
+                  <span className="hidden sm:inline">Mi Cuenta</span>
+                </button>
+              </Link>
 
-              {/* User Dropdown Menu */}
-              {showUserMenu && (
-                <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-j-light-text/10 dark:border-white/10 py-2 z-50">
-                  <a
-                    href="/dashboard"
-                    className="block px-4 py-2 text-sm text-j-light-text dark:text-j-dark-text hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
-                    onClick={() => setShowUserMenu(false)}
+              {/* User Menu Dropdown */}
+              <div className="relative">
+                <button
+                  onClick={() => setShowUserMenu(!showUserMenu)}
+                  className="flex items-center gap-2 px-2 py-2 rounded-full bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/20 border border-black/5 dark:border-white/10 transition-all"
+                >
+                  {session.user.image ? (
+                    <img
+                      src={session.user.image}
+                      alt={session.user.name || 'User'}
+                      className="w-7 h-7 rounded-full border-2 border-warm-glow/30"
+                    />
+                  ) : (
+                    <div className="w-7 h-7 rounded-full bg-warm-glow flex items-center justify-center text-white text-xs font-bold">
+                      {session.user.name?.charAt(0) || session.user.email?.charAt(0) || 'U'}
+                    </div>
+                  )}
+                  <svg
+                    className={`w-3 h-3 transition-transform ${showUserMenu ? 'rotate-180' : ''}`}
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
                   >
-                    {t.nav?.dashboard || 'Dashboard'}
-                  </a>
-                  {session.user.role === 'ADMIN' && (
-                    <a
-                      href="/admin"
-                      className="block px-4 py-2 text-sm text-j-light-text dark:text-j-dark-text hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+
+                {/* User Dropdown Menu */}
+                {showUserMenu && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-j-light-text/10 dark:border-white/10 py-2 z-50">
+                    <div className="px-4 py-2 border-b border-j-light-text/10 dark:border-white/10">
+                      <p className="text-sm font-medium text-j-light-text dark:text-j-dark-text truncate">
+                        {session.user.name || 'Usuario'}
+                      </p>
+                      <p className="text-xs text-j-light-text/60 dark:text-j-dark-text/60 truncate">
+                        {session.user.email}
+                      </p>
+                    </div>
+                    <Link
+                      href="/dashboard"
+                      className="flex items-center gap-2 px-4 py-2 text-sm text-j-light-text dark:text-j-dark-text hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
                       onClick={() => setShowUserMenu(false)}
                     >
-                      {t.nav?.admin || 'Admin'}
-                    </a>
-                  )}
-                  <hr className="my-2 border-j-light-text/10 dark:border-white/10" />
-                  <button
-                    onClick={handleSignOut}
-                    className="block w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
-                  >
-                    {t.nav?.signOut || 'Sign Out'}
-                  </button>
-                </div>
-              )}
+                      <span>🏠</span> Dashboard
+                    </Link>
+                    <Link
+                      href="/dashboard/proyectos"
+                      className="flex items-center gap-2 px-4 py-2 text-sm text-j-light-text dark:text-j-dark-text hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+                      onClick={() => setShowUserMenu(false)}
+                    >
+                      <span>📋</span> Mis Proyectos
+                    </Link>
+                    <Link
+                      href="/dashboard/wallet"
+                      className="flex items-center gap-2 px-4 py-2 text-sm text-j-light-text dark:text-j-dark-text hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+                      onClick={() => setShowUserMenu(false)}
+                    >
+                      <span>💰</span> Wallet
+                    </Link>
+                    {session.user.role === 'ADMIN' && (
+                      <Link
+                        href="/admin"
+                        className="flex items-center gap-2 px-4 py-2 text-sm text-j-light-text dark:text-j-dark-text hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+                        onClick={() => setShowUserMenu(false)}
+                      >
+                        <span>⚙️</span> Admin Panel
+                      </Link>
+                    )}
+                    <hr className="my-2 border-j-light-text/10 dark:border-white/10" />
+                    <button
+                      onClick={handleSignOut}
+                      className="flex items-center gap-2 w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+                    >
+                      <span>🚪</span> Cerrar Sesión
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           ) : (
             <Button
