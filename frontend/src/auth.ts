@@ -1,5 +1,7 @@
 import NextAuth, { DefaultSession } from "next-auth"
 import GoogleProvider from "next-auth/providers/google"
+import { PrismaAdapter } from "@auth/prisma-adapter"
+import { prisma } from "@/lib/prisma"
 // TODO: Enable these providers when credentials are configured
 // import FacebookProvider from "next-auth/providers/facebook"
 // import AppleProvider from "next-auth/providers/apple"
@@ -16,9 +18,8 @@ declare module "next-auth" {
 }
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
-  // Note: Using JWT strategy without database adapter for now
-  // TODO: Re-enable PrismaAdapter when database is properly configured
-  // adapter: PrismaAdapter(prisma),
+  // Database adapter for persisting users and accounts
+  adapter: PrismaAdapter(prisma),
 
   // Configure OAuth providers (only enabled providers with valid credentials)
   providers: [
@@ -66,11 +67,15 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   callbacks: {
     // JWT callback - runs whenever a JWT is created or updated
     async jwt({ token, user, account, profile }) {
-      // On sign in, add user ID and account info to token
+      // On sign in, add user ID from database
       if (user) {
-        // Use sub from OAuth profile or generate a unique ID
-        token.id = user.id || token.sub || `oauth_${Date.now()}`
-        token.role = "CLIENT" // Default role
+        token.id = user.id
+        // Fetch role from database
+        const dbUser = await prisma.user.findUnique({
+          where: { id: user.id },
+          select: { role: true }
+        })
+        token.role = dbUser?.role || "CLIENT"
       }
 
       // Store OAuth account info
@@ -93,7 +98,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     async session({ session, token }) {
       // Add user ID and role to session
       if (session.user) {
-        session.user.id = (token.id || token.sub) as string
+        session.user.id = token.id as string
         session.user.role = (token.role as string) || "CLIENT"
         // Use token picture if available (from OAuth profile)
         if (token.picture) {

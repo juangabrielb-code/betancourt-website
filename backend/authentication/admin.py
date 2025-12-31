@@ -17,7 +17,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.utils.translation import gettext_lazy as _
 from django.utils.html import format_html
-from .models import User, PasswordResetToken
+from .models import User, PasswordResetToken, AuthUser, AuthAccount, AuthSession
 
 
 @admin.register(User)
@@ -195,3 +195,163 @@ class PasswordResetTokenAdmin(admin.ModelAdmin):
             'fields': ('is_used', 'used_at')
         }),
     )
+
+
+# ==============================================================================
+# OAuth Users Admin (Read-Only)
+# ==============================================================================
+
+@admin.register(AuthUser)
+class AuthUserAdmin(admin.ModelAdmin):
+    """
+    Admin interface for OAuth Users (from Auth.js/NextAuth).
+    Read-only access to users authenticated via Google, Facebook, etc.
+    """
+
+    list_display = [
+        'email',
+        'name',
+        'role',
+        'created_at',
+        'image_preview',
+    ]
+
+    list_filter = [
+        'role',
+        'created_at',
+    ]
+
+    search_fields = [
+        'email',
+        'name',
+    ]
+
+    ordering = ['-created_at']
+
+    readonly_fields = [
+        'id',
+        'name',
+        'email',
+        'email_verified',
+        'image',
+        'role',
+        'created_at',
+        'updated_at',
+    ]
+
+    def has_add_permission(self, request):
+        """OAuth users are created via Auth.js, not Django admin."""
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        """Prevent deletion from Django admin."""
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        """Read-only access."""
+        return False
+
+    def image_preview(self, obj):
+        """Show user avatar."""
+        if obj.image:
+            return format_html(
+                '<img src="{}" width="30" height="30" style="border-radius: 50%;" />',
+                obj.image
+            )
+        return "-"
+    image_preview.short_description = _('Avatar')
+
+
+@admin.register(AuthAccount)
+class AuthAccountAdmin(admin.ModelAdmin):
+    """
+    Admin interface for OAuth Accounts (provider linkage).
+    Shows which OAuth providers are linked to each user.
+    """
+
+    list_display = [
+        'user',
+        'provider',
+        'type',
+        'provider_account_id',
+    ]
+
+    list_filter = [
+        'provider',
+        'type',
+    ]
+
+    search_fields = [
+        'user__email',
+        'provider',
+        'provider_account_id',
+    ]
+
+    readonly_fields = [
+        'id',
+        'user',
+        'type',
+        'provider',
+        'provider_account_id',
+        'refresh_token',
+        'access_token',
+        'expires_at',
+        'token_type',
+        'scope',
+        'id_token',
+        'session_state',
+    ]
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(AuthSession)
+class AuthSessionAdmin(admin.ModelAdmin):
+    """
+    Admin interface for OAuth Sessions.
+    Shows active sessions for OAuth users.
+    """
+
+    list_display = [
+        'user',
+        'session_token_preview',
+        'expires',
+    ]
+
+    list_filter = [
+        'expires',
+    ]
+
+    search_fields = [
+        'user__email',
+    ]
+
+    ordering = ['-expires']
+
+    readonly_fields = [
+        'id',
+        'session_token',
+        'user',
+        'expires',
+    ]
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def session_token_preview(self, obj):
+        """Show truncated session token."""
+        return f"{obj.session_token[:12]}..."
+    session_token_preview.short_description = _('Session Token')
