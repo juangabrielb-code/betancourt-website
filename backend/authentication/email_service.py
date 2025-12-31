@@ -3,33 +3,32 @@ Email Service for Authentication
 
 This module handles sending emails for authentication-related events:
 - Password reset emails
-- Email verification (future)
+- Email verification
 - Welcome emails (future)
 
-Security Features:
-- Rate limiting (prevents email spam)
-- Retry logic for failed sends
-- Logging of all email events
-- HTML templates with fallback to plain text
+Uses Resend for email delivery.
 
 Related: BET-29 (Email Service - Password Reset)
 """
 
 import logging
-from django.core.mail import send_mail, EmailMultiAlternatives
-from django.template.loader import render_to_string
-from django.utils.html import strip_tags
+import resend
 from django.conf import settings
-from typing import Optional
-import time
+from decouple import config
 
 # Configure logger
 logger = logging.getLogger(__name__)
 
+# Configure Resend API key
+resend.api_key = config('RESEND_API_KEY', default='')
+
+# Email sender configuration
+FROM_EMAIL = config('RESEND_FROM_EMAIL', default='Betancourt Audio <noreply@betancourtaudio.com>')
+
 
 def send_password_reset_email(user, token: str, retry_count: int = 3) -> bool:
     """
-    Send password reset email with retry logic.
+    Send password reset email using Resend.
 
     Args:
         user: User instance
@@ -38,172 +37,231 @@ def send_password_reset_email(user, token: str, retry_count: int = 3) -> bool:
 
     Returns:
         bool: True if email sent successfully, False otherwise
-
-    Example:
-        success = send_password_reset_email(user, 'abc123def456')
-        if success:
-            logger.info(f'Password reset email sent to {user.email}')
     """
-    # Build reset URL
     reset_url = f"{settings.FRONTEND_URL}/reset-password?token={token}"
+    user_name = user.first_name or user.email
 
-    # Email context
-    context = {
-        'user': user,
-        'reset_url': reset_url,
-        'expiry_hours': settings.PASSWORD_RESET_TOKEN_EXPIRY_HOURS,
-        'site_name': 'Betancourt Audio',
-        'support_email': 'support@betancourtaudio.com',
-    }
+    html_content = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f5f5f5; margin: 0; padding: 20px;">
+        <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+            <div style="background: linear-gradient(135deg, #D4A574 0%, #C4956A 100%); padding: 40px 20px; text-align: center;">
+                <h1 style="color: #ffffff; margin: 0; font-size: 28px;">Betancourt Audio</h1>
+            </div>
+            <div style="padding: 40px 30px;">
+                <h2 style="color: #1a1a1a; margin-top: 0;">Restablecer Contraseña</h2>
+                <p style="color: #4a4a4a; font-size: 16px; line-height: 1.6;">
+                    Hola {user_name},
+                </p>
+                <p style="color: #4a4a4a; font-size: 16px; line-height: 1.6;">
+                    Recibimos una solicitud para restablecer tu contraseña. Haz clic en el siguiente botón para crear una nueva:
+                </p>
+                <div style="text-align: center; margin: 30px 0;">
+                    <a href="{reset_url}" style="background-color: #D4A574; color: #ffffff; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block;">
+                        Restablecer Contraseña
+                    </a>
+                </div>
+                <p style="color: #6a6a6a; font-size: 14px; line-height: 1.6;">
+                    Este enlace expira en {settings.PASSWORD_RESET_TOKEN_EXPIRY_HOURS} hora(s).
+                </p>
+                <p style="color: #6a6a6a; font-size: 14px; line-height: 1.6;">
+                    Si no solicitaste este cambio, puedes ignorar este email.
+                </p>
+            </div>
+            <div style="background-color: #f9f9f9; padding: 20px 30px; text-align: center; border-top: 1px solid #eee;">
+                <p style="color: #999; font-size: 12px; margin: 0;">
+                    © 2025 Betancourt Audio. Todos los derechos reservados.
+                </p>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
 
-    # Render HTML email template
-    html_message = render_to_string('emails/password_reset.html', context)
-
-    # Create plain text version (fallback for email clients that don't support HTML)
-    plain_message = strip_tags(html_message)
-
-    # Email subject
-    subject = 'Reset Your Password - Betancourt Audio'
-
-    # Retry logic
     for attempt in range(retry_count):
         try:
-            # Create email message with HTML alternative
-            email = EmailMultiAlternatives(
-                subject=subject,
-                body=plain_message,
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                to=[user.email]
-            )
-            email.attach_alternative(html_message, "text/html")
+            params = {
+                "from": FROM_EMAIL,
+                "to": [user.email],
+                "subject": "Restablecer Contraseña - Betancourt Audio",
+                "html": html_content,
+            }
 
-            # Send email
-            email.send(fail_silently=False)
+            response = resend.Emails.send(params)
 
-            # Log success
             logger.info(
                 f'Password reset email sent successfully',
-                extra={
-                    'email': user.email,
-                    'user_id': str(user.id),
-                    'attempt': attempt + 1,
-                }
+                extra={'email': user.email, 'user_id': str(user.id), 'resend_id': response.get('id')}
             )
-
             return True
 
         except Exception as e:
             logger.error(
                 f'Failed to send password reset email (attempt {attempt + 1}/{retry_count})',
-                extra={
-                    'email': user.email,
-                    'user_id': str(user.id),
-                    'error': str(e),
-                    'attempt': attempt + 1,
-                },
+                extra={'email': user.email, 'error': str(e)},
                 exc_info=True
             )
-
-            # Wait before retry (exponential backoff)
-            if attempt < retry_count - 1:
-                wait_time = 2 ** attempt  # 1s, 2s, 4s
-                time.sleep(wait_time)
-
-    # All retries failed
-    logger.error(
-        f'All retry attempts failed for password reset email',
-        extra={
-            'email': user.email,
-            'user_id': str(user.id),
-            'retry_count': retry_count,
-        }
-    )
 
     return False
 
 
-def send_email_verification(user, verification_token: str) -> bool:
+def send_email_verification(user, verification_token: str, retry_count: int = 3) -> bool:
     """
-    Send email verification link (future implementation).
+    Send email verification link using Resend.
 
     Args:
         user: User instance
         verification_token (str): Email verification token
+        retry_count (int): Number of retry attempts on failure
 
     Returns:
         bool: True if email sent successfully
     """
-    # TODO: Implement email verification
-    # Similar structure to password reset
-    pass
+    verify_url = f"{settings.FRONTEND_URL}/verify-email?token={verification_token}"
+    user_name = user.first_name or user.email
+
+    html_content = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f5f5f5; margin: 0; padding: 20px;">
+        <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+            <div style="background: linear-gradient(135deg, #D4A574 0%, #C4956A 100%); padding: 40px 20px; text-align: center;">
+                <h1 style="color: #ffffff; margin: 0; font-size: 28px;">Betancourt Audio</h1>
+            </div>
+            <div style="padding: 40px 30px;">
+                <h2 style="color: #1a1a1a; margin-top: 0;">Verifica tu Email</h2>
+                <p style="color: #4a4a4a; font-size: 16px; line-height: 1.6;">
+                    Hola {user_name},
+                </p>
+                <p style="color: #4a4a4a; font-size: 16px; line-height: 1.6;">
+                    Gracias por registrarte en Betancourt Audio. Por favor verifica tu email haciendo clic en el siguiente botón:
+                </p>
+                <div style="text-align: center; margin: 30px 0;">
+                    <a href="{verify_url}" style="background-color: #D4A574; color: #ffffff; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block;">
+                        Verificar Email
+                    </a>
+                </div>
+                <p style="color: #6a6a6a; font-size: 14px; line-height: 1.6;">
+                    Este enlace expira en 24 horas.
+                </p>
+                <p style="color: #6a6a6a; font-size: 14px; line-height: 1.6;">
+                    Si no creaste esta cuenta, puedes ignorar este email.
+                </p>
+            </div>
+            <div style="background-color: #f9f9f9; padding: 20px 30px; text-align: center; border-top: 1px solid #eee;">
+                <p style="color: #999; font-size: 12px; margin: 0;">
+                    © 2025 Betancourt Audio. Todos los derechos reservados.
+                </p>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+
+    for attempt in range(retry_count):
+        try:
+            params = {
+                "from": FROM_EMAIL,
+                "to": [user.email],
+                "subject": "Verifica tu Email - Betancourt Audio",
+                "html": html_content,
+            }
+
+            response = resend.Emails.send(params)
+
+            logger.info(
+                f'Email verification sent successfully',
+                extra={'email': user.email, 'user_id': str(user.id), 'resend_id': response.get('id')}
+            )
+            return True
+
+        except Exception as e:
+            logger.error(
+                f'Failed to send email verification (attempt {attempt + 1}/{retry_count})',
+                extra={'email': user.email, 'error': str(e)},
+                exc_info=True
+            )
+
+    return False
 
 
 def send_welcome_email(user) -> bool:
     """
     Send welcome email to new users (future implementation).
-
-    Args:
-        user: User instance
-
-    Returns:
-        bool: True if email sent successfully
     """
-    # TODO: Implement welcome email
+    # TODO: Implement welcome email with Resend
     pass
 
 
 def send_password_changed_notification(user) -> bool:
     """
-    Send notification when password is changed (security feature).
-
-    Args:
-        user: User instance
-
-    Returns:
-        bool: True if email sent successfully
+    Send notification when password is changed using Resend.
     """
-    subject = 'Your Password Was Changed - Betancourt Audio'
+    user_name = user.first_name or user.email
 
-    context = {
-        'user': user,
-        'site_name': 'Betancourt Audio',
-        'support_email': 'support@betancourtaudio.com',
-    }
-
-    # For now, send simple plain text email
-    # TODO: Create HTML template
-    message = f"""
-Hello {user.first_name or user.email},
-
-This email confirms that your password was successfully changed.
-
-If you did not make this change, please contact us immediately at {context['support_email']}.
-
-Best regards,
-{context['site_name']} Team
-"""
+    html_content = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f5f5f5; margin: 0; padding: 20px;">
+        <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+            <div style="background: linear-gradient(135deg, #D4A574 0%, #C4956A 100%); padding: 40px 20px; text-align: center;">
+                <h1 style="color: #ffffff; margin: 0; font-size: 28px;">Betancourt Audio</h1>
+            </div>
+            <div style="padding: 40px 30px;">
+                <h2 style="color: #1a1a1a; margin-top: 0;">Contraseña Actualizada</h2>
+                <p style="color: #4a4a4a; font-size: 16px; line-height: 1.6;">
+                    Hola {user_name},
+                </p>
+                <p style="color: #4a4a4a; font-size: 16px; line-height: 1.6;">
+                    Tu contraseña ha sido actualizada exitosamente.
+                </p>
+                <p style="color: #6a6a6a; font-size: 14px; line-height: 1.6;">
+                    Si no realizaste este cambio, por favor contacta a nuestro equipo de soporte inmediatamente.
+                </p>
+            </div>
+            <div style="background-color: #f9f9f9; padding: 20px 30px; text-align: center; border-top: 1px solid #eee;">
+                <p style="color: #999; font-size: 12px; margin: 0;">
+                    © 2025 Betancourt Audio. Todos los derechos reservados.
+                </p>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
 
     try:
-        send_mail(
-            subject=subject,
-            message=message,
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[user.email],
-            fail_silently=False,
-        )
+        params = {
+            "from": FROM_EMAIL,
+            "to": [user.email],
+            "subject": "Tu Contraseña fue Actualizada - Betancourt Audio",
+            "html": html_content,
+        }
+
+        response = resend.Emails.send(params)
 
         logger.info(
             f'Password changed notification sent',
-            extra={'email': user.email, 'user_id': str(user.id)}
+            extra={'email': user.email, 'user_id': str(user.id), 'resend_id': response.get('id')}
         )
-
         return True
 
     except Exception as e:
         logger.error(
             f'Failed to send password changed notification',
-            extra={'email': user.email, 'user_id': str(user.id), 'error': str(e)},
+            extra={'email': user.email, 'error': str(e)},
             exc_info=True
         )
-
         return False

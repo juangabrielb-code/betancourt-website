@@ -343,6 +343,93 @@ class PasswordResetToken(models.Model):
         return count
 
 
+class EmailVerificationToken(models.Model):
+    """
+    Email Verification Token Model.
+
+    Stores secure tokens for email verification functionality.
+    Tokens expire after a configurable time period (default: 24 hours).
+    """
+
+    id = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        editable=False
+    )
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='email_verification_tokens',
+        help_text=_('User requesting email verification')
+    )
+
+    token = models.CharField(
+        _('token'),
+        max_length=64,
+        unique=True,
+        db_index=True,
+        help_text=_('Secure token for email verification')
+    )
+
+    created_at = models.DateTimeField(
+        _('created at'),
+        auto_now_add=True
+    )
+
+    expires_at = models.DateTimeField(
+        _('expires at'),
+        help_text=_('When the token expires')
+    )
+
+    is_used = models.BooleanField(
+        _('is used'),
+        default=False,
+        db_index=True
+    )
+
+    used_at = models.DateTimeField(
+        _('used at'),
+        null=True,
+        blank=True
+    )
+
+    class Meta:
+        verbose_name = _('email verification token')
+        verbose_name_plural = _('email verification tokens')
+        db_table = 'auth_email_verification_token'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Verification token for {self.user.email}"
+
+    @classmethod
+    def create_token(cls, user, expiry_hours=24):
+        """Create a new email verification token."""
+        token = secrets.token_urlsafe(32)
+        expires_at = timezone.now() + timedelta(hours=expiry_hours)
+
+        return cls.objects.create(
+            user=user,
+            token=token,
+            expires_at=expires_at
+        )
+
+    def is_valid(self):
+        """Check if the token is valid."""
+        if self.is_used:
+            return False
+        if timezone.now() > self.expires_at:
+            return False
+        return True
+
+    def mark_as_used(self):
+        """Mark the token as used."""
+        self.is_used = True
+        self.used_at = timezone.now()
+        self.save(update_fields=['is_used', 'used_at'])
+
+
 # ==============================================================================
 # OAuth Authentication Models (Read-Only)
 # ==============================================================================

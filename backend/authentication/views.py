@@ -24,7 +24,7 @@ from django.conf import settings
 from decouple import config
 import time
 
-from .models import User, PasswordResetToken
+from .models import User, PasswordResetToken, EmailVerificationToken
 from .serializers import (
     RegisterSerializer,
     LoginSerializer,
@@ -33,7 +33,7 @@ from .serializers import (
     ResetPasswordSerializer,
     ChangePasswordSerializer,
 )
-from .email_service import send_password_reset_email, send_password_changed_notification
+from .email_service import send_password_reset_email, send_password_changed_notification, send_email_verification
 
 
 def get_tokens_for_user(user):
@@ -112,11 +112,27 @@ def register(request):
         # Generate JWT tokens
         tokens = get_tokens_for_user(user)
 
+        # Send email verification
+        verification_token = EmailVerificationToken.create_token(user)
+        email_sent = send_email_verification(user, verification_token.token)
+
+        # Log verification email status (for development)
+        if settings.DEBUG:
+            print(f"\n{'='*60}")
+            print(f"EMAIL VERIFICATION TOKEN (DEV ONLY)")
+            print(f"{'='*60}")
+            print(f"Email: {user.email}")
+            print(f"Token: {verification_token.token}")
+            print(f"Verify URL: {settings.FRONTEND_URL}/verify-email?token={verification_token.token}")
+            print(f"Expires: {verification_token.expires_at}")
+            print(f"Email Sent: {'✓' if email_sent else '✗'}")
+            print(f"{'='*60}\n")
+
         # Return user data + tokens
         return Response({
             'user': UserSerializer(user).data,
             'tokens': tokens,
-            'message': 'Registration successful'
+            'message': 'Registration successful. Please check your email to verify your account.'
         }, status=status.HTTP_201_CREATED)
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -447,4 +463,107 @@ def logout(request):
 
     return Response({
         'message': 'Logout successful'
+    }, status=status.HTTP_200_OK)
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def verify_email(request):
+    """
+    Verify email with token.
+
+    POST /api/auth/verify-email/
+
+    Request Body:
+        {
+            "token": "abc123..."
+        }
+
+    Response (200 OK):
+        {
+            "message": "Email verified successfully"
+        }
+
+    Response (400 Bad Request):
+        {
+            "detail": "Token is invalid or has expired."
+        }
+    """
+    token = request.data.get('token')
+
+    if not token:
+        return Response({
+            'detail': 'Token is required.'
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        verification_token = EmailVerificationToken.objects.get(token=token)
+    except EmailVerificationToken.DoesNotExist:
+        return Response({
+            'detail': 'Token is invalid or has expired.'
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+    if not verification_token.is_valid():
+        return Response({
+            'detail': 'Token is invalid or has expired.'
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+    # Mark email as verified
+    user = verification_token.user
+    user.email_verified = True
+    user.email_verified_at = timezone.now()
+    user.save(update_fields=['email_verified', 'email_verified_at'])
+
+    # Mark token as used
+    verification_token.mark_as_used()
+
+    return Response({
+        'message': 'Email verified successfully'
+    }, status=status.HTTP_200_OK)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def resend_verification_email(request):
+    """
+    Resend email verification link.
+
+    POST /api/auth/resend-verification/
+    Authorization: Bearer <access_token>
+
+    Response (200 OK):
+        {
+            "message": "Verification email sent successfully"
+        }
+
+    Response (400 Bad Request):
+        {
+            "detail": "Email is already verified."
+        }
+    """
+    user = request.user
+
+    if user.email_verified:
+        return Response({
+            'detail': 'Email is already verified.'
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+    # Create new verification token
+    verification_token = EmailVerificationToken.create_token(user)
+
+    # Send verification email
+    email_sent = send_email_verification(user, verification_token.token)
+
+    if settings.DEBUG:
+        print(f"\n{'='*60}")
+        print(f"EMAIL VERIFICATION TOKEN (RESEND)")
+        print(f"{'='*60}")
+        print(f"Email: {user.email}")
+        print(f"Token: {verification_token.token}")
+        print(f"Verify URL: {settings.FRONTEND_URL}/verify-email?token={verification_token.token}")
+        print(f"Email Sent: {'✓' if email_sent else '✗'}")
+        print(f"{'='*60}\n")
+
+    return Response({
+        'message': 'Verification email sent successfully'
     }, status=status.HTTP_200_OK)

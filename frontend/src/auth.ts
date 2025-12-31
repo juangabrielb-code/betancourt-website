@@ -1,11 +1,15 @@
 import NextAuth, { DefaultSession } from "next-auth"
 import GoogleProvider from "next-auth/providers/google"
+import CredentialsProvider from "next-auth/providers/credentials"
 import { PrismaAdapter } from "@auth/prisma-adapter"
 import { prisma } from "@/lib/prisma"
 // TODO: Enable these providers when credentials are configured
 // import FacebookProvider from "next-auth/providers/facebook"
 // import AppleProvider from "next-auth/providers/apple"
 // import MicrosoftEntraIDProvider from "next-auth/providers/microsoft-entra-id"
+
+// Django API URL
+const DJANGO_API_URL = process.env.DJANGO_API_URL || "http://backend:8000"
 
 // Extend the built-in session types
 declare module "next-auth" {
@@ -21,8 +25,52 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   // Database adapter for persisting users and accounts
   adapter: PrismaAdapter(prisma),
 
-  // Configure OAuth providers (only enabled providers with valid credentials)
+  // Configure providers
   providers: [
+    // Email/Password Provider (Django Backend)
+    CredentialsProvider({
+      id: "credentials",
+      name: "Email",
+      credentials: {
+        email: { label: "Email", type: "email", placeholder: "tu@email.com" },
+        password: { label: "Contraseña", type: "password" }
+      },
+      async authorize(credentials) {
+        if (!credentials?.email || !credentials?.password) {
+          return null
+        }
+
+        try {
+          // Authenticate against Django API
+          const response = await fetch(`${DJANGO_API_URL}/api/auth/login/`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              email: credentials.email,
+              password: credentials.password,
+            }),
+          })
+
+          if (!response.ok) {
+            return null
+          }
+
+          const data = await response.json()
+
+          // Return user object for Auth.js session
+          return {
+            id: data.user.id,
+            email: data.user.email,
+            name: `${data.user.first_name} ${data.user.last_name}`.trim() || data.user.email,
+            djangoTokens: data.tokens, // Store Django JWT tokens
+          }
+        } catch (error) {
+          console.error("Django auth error:", error)
+          return null
+        }
+      },
+    }),
+
     // Google OAuth Provider
     GoogleProvider({
       clientId: process.env.AUTH_GOOGLE_ID!,
@@ -67,24 +115,38 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   callbacks: {
     // JWT callback - runs whenever a JWT is created or updated
     async jwt({ token, user, account, profile }) {
-      // On sign in, add user ID from database
+      // On sign in, add user info to token
       if (user) {
         token.id = user.id
-        // Fetch role from database
-        const dbUser = await prisma.user.findUnique({
-          where: { id: user.id },
-          select: { role: true }
-        })
-        token.role = dbUser?.role || "CLIENT"
+        token.name = user.name
+        token.email = user.email
+
+        // Handle credentials provider (Django users)
+        if (account?.provider === "credentials") {
+          token.provider = "credentials"
+          token.role = "CLIENT" // Django users default to CLIENT
+          // Store Django JWT tokens for API calls
+          if ((user as any).djangoTokens) {
+            token.djangoAccessToken = (user as any).djangoTokens.access
+            token.djangoRefreshToken = (user as any).djangoTokens.refresh
+          }
+        } else if (account) {
+          // OAuth providers - fetch role from Prisma database
+          token.provider = account.provider
+          token.providerAccountId = account.providerAccountId
+          try {
+            const dbUser = await prisma.user.findUnique({
+              where: { id: user.id },
+              select: { role: true }
+            })
+            token.role = dbUser?.role || "CLIENT"
+          } catch {
+            token.role = "CLIENT"
+          }
+        }
       }
 
-      // Store OAuth account info
-      if (account) {
-        token.provider = account.provider
-        token.providerAccountId = account.providerAccountId
-      }
-
-      // Store profile info if available
+      // Store profile info if available (OAuth)
       if (profile) {
         token.name = profile.name || token.name
         token.email = profile.email || token.email
