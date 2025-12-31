@@ -127,7 +127,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuc
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center min-h-screen p-4 py-8">
           {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
@@ -142,9 +142,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuc
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="relative w-full max-w-sm"
+            className="relative w-full max-w-sm max-h-[90vh] overflow-y-auto"
           >
-            <GlassCard className="overflow-hidden shadow-2xl relative">
+            <GlassCard className="shadow-2xl relative">
               {/* Decorative blob */}
               <div className="absolute top-0 right-0 w-32 h-32 bg-warm-glow/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
 
