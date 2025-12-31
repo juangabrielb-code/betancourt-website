@@ -7,18 +7,10 @@
  * Protected Routes:
  * - /dashboard/* - User dashboard (all authenticated users)
  * - /admin/* - Admin dashboard (admin users only)
- *
- * Security Features:
- * - Session validation on every request
- * - Automatic redirect to home for unauthenticated users
- * - HttpOnly cookies (Secure, SameSite=Lax)
- *
- * Related: BET-16 (Setup), BET-20 (Middleware Implementation)
  */
 
-import { auth } from "./auth"
+import { auth } from "./src/auth"
 import { NextResponse } from "next/server"
-import type { NextRequest } from "next/server"
 
 /**
  * Protected route patterns
@@ -26,29 +18,17 @@ import type { NextRequest } from "next/server"
 const protectedRoutes = ['/dashboard', '/admin']
 
 /**
- * Public routes that should redirect to dashboard if authenticated
+ * Middleware using Auth.js v5 pattern
+ * Session is available via auth parameter
  */
-const authRoutes = ['/login', '/register']
-
-/**
- * Middleware function
- *
- * @param request - Incoming request
- * @returns Response or redirect
- */
-export default auth(async function middleware(request: NextRequest) {
+export default auth((request) => {
   const { pathname } = request.nextUrl
 
-  // Get session from Auth.js
-  const session = await auth()
+  // Get session from the auth wrapper (request.auth)
+  const session = request.auth
 
   // Check if current route is protected
   const isProtectedRoute = protectedRoutes.some(route =>
-    pathname.startsWith(route)
-  )
-
-  // Check if current route is an auth route
-  const isAuthRoute = authRoutes.some(route =>
     pathname.startsWith(route)
   )
 
@@ -59,8 +39,8 @@ export default auth(async function middleware(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  // Redirect authenticated users away from auth routes
-  if (isAuthRoute && session) {
+  // Check admin routes
+  if (pathname.startsWith('/admin') && session?.user?.role !== 'ADMIN') {
     return NextResponse.redirect(new URL('/dashboard', request.url))
   }
 
@@ -70,17 +50,11 @@ export default auth(async function middleware(request: NextRequest) {
 
 /**
  * Matcher configuration
- * Specifies which routes this middleware should run on
+ * Only run middleware on protected routes for performance
  */
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public files (public folder)
-     */
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/dashboard/:path*',
+    '/admin/:path*',
   ],
 }

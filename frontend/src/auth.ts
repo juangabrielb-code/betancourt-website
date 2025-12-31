@@ -126,10 +126,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     },
   },
 
-  // Custom pages
+  // Custom pages - only set error page, let signIn use default behavior
   pages: {
-    signIn: "/", // Redirect to home page for sign in
-    error: "/", // Redirect to home page on error
+    error: "/auth/error",
   },
 
   // Security options
@@ -138,16 +137,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   // Enable debug messages in development
   debug: process.env.NODE_ENV === "development",
 
-  // Cookie configuration
-  cookies: {
-    sessionToken: {
-      name: `__Secure-next-auth.session-token`,
-      options: {
-        httpOnly: true,
-        sameSite: "lax",
-        path: "/",
-        secure: process.env.NODE_ENV === "production",
-      },
-    },
-  },
+  // Trust host for Docker/proxy environments
+  trustHost: true,
 })

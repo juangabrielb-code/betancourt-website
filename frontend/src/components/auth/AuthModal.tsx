@@ -3,8 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { signIn } from 'next-auth/react';
-import { Button, GlassCard, Input } from '../ui/UI';
-import { useAuth } from '@/contexts/AuthContext';
+import { GlassCard } from '../ui/UI';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 interface AuthModalProps {
@@ -18,30 +17,14 @@ type Provider = 'google' | 'facebook' | 'apple' | 'microsoft-entra-id';
 export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuccess }) => {
   // OAuth state
   const [oauthLoading, setOauthLoading] = useState<Provider | null>(null);
-
-  // Email/Password state
-  const [mode, setMode] = useState<'login' | 'signup'>('login');
-  const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    password: '',
-    confirmPassword: ''
-  });
-  const [formLoading, setFormLoading] = useState(false);
-
   const [error, setError] = useState('');
-  const { signIn: emailSignIn, signUp } = useAuth();
   const { t } = useLanguage();
 
   // Reset state when opening
   useEffect(() => {
     if (isOpen) {
-      setMode('login');
-      setFormData({ firstName: '', lastName: '', email: '', password: '', confirmPassword: '' });
       setError('');
       setOauthLoading(null);
-      setFormLoading(false);
     }
   }, [isOpen]);
 
@@ -51,77 +34,21 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuc
     setError('');
 
     try {
-      const result = await signIn(provider, {
+      await signIn(provider, {
         callbackUrl: '/dashboard',
         redirect: true,
       });
-
-      if (result?.error) {
-        setError(
-          t.auth?.error?.[provider] ||
-          `Error al iniciar sesión con ${provider}`
-        );
-      } else {
-        onAuthSuccess?.();
-        onClose();
-      }
+      // Note: redirect: true means this won't return normally
+      onAuthSuccess?.();
+      onClose();
     } catch (err) {
       console.error('Auth error:', err);
       setError(
         t.auth?.errorGeneral ||
         'Hubo un problema al iniciar sesión. Por favor intenta de nuevo.'
       );
-    } finally {
       setOauthLoading(null);
     }
-  };
-
-  // Email/Password handlers
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
-    setError('');
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setFormLoading(true);
-
-    try {
-      if (mode === 'login') {
-        await emailSignIn(formData.email, formData.password);
-      } else {
-        if (formData.password !== formData.confirmPassword) {
-          setError('Passwords do not match');
-          setFormLoading(false);
-          return;
-        }
-        await signUp(formData.email, formData.password, formData.firstName, formData.lastName);
-      }
-
-      onAuthSuccess?.();
-      onClose();
-    } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Authentication failed';
-      setError(errorMessage);
-    } finally {
-      setFormLoading(false);
-    }
-  };
-
-  const toggleMode = () => {
-    setMode(prev => prev === 'login' ? 'signup' : 'login');
-    setError('');
-  };
-
-  const getProviderName = (provider: Provider): string => {
-    const names = {
-      google: 'Google',
-      facebook: 'Facebook',
-      apple: 'Apple',
-      'microsoft-entra-id': 'Microsoft',
-    };
-    return names[provider];
   };
 
   return (
@@ -151,10 +78,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuc
               <div className="flex justify-between items-start mb-6 relative z-10">
                 <div>
                   <h3 className="text-2xl font-serif font-bold text-j-light-text dark:text-j-dark-text">
-                    {mode === 'login' ? (t.auth?.loginTitle || 'Welcome Back') : (t.auth?.signupTitle || 'Create Account')}
+                    {t.auth?.loginTitle || 'Bienvenido'}
                   </h3>
                   <p className="text-j-light-text/60 dark:text-j-dark-text/60 text-sm mt-1">
-                    {mode === 'login' ? (t.auth?.subtitleLogin || 'Sign in to continue') : (t.auth?.subtitleSignup || 'Join us today')}
+                    {t.auth?.subtitleLogin || 'Inicia sesión para continuar'}
                   </p>
                 </div>
                 <button
@@ -176,16 +103,16 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuc
               )}
 
               {/* OAuth Social Login Buttons */}
-              <div className="space-y-3 relative z-10 mb-6">
-                {/* Google */}
+              <div className="space-y-3 relative z-10">
+                {/* Google - Primary */}
                 <button
                   type="button"
                   onClick={() => handleSocialLogin('google')}
-                  disabled={oauthLoading !== null || formLoading}
-                  className="w-full flex items-center justify-center gap-3 py-2.5 px-4 rounded-xl border border-j-light-text/10 dark:border-white/10 bg-white hover:bg-gray-50 dark:bg-white/5 dark:hover:bg-white/10 transition-colors text-sm font-medium text-j-light-text dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={oauthLoading !== null}
+                  className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl border-2 border-warm-glow/30 bg-white hover:bg-warm-glow/5 dark:bg-white/5 dark:hover:bg-white/10 transition-all text-sm font-medium text-j-light-text dark:text-white disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-warm-glow/10"
                 >
                   {oauthLoading === 'google' ? (
-                    <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <svg className="animate-spin h-5 w-5 text-warm-glow" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
@@ -197,110 +124,26 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuc
                       <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
                     </svg>
                   )}
-                  <span>{t.auth?.continueWithGoogle || 'Continue with Google'}</span>
+                  <span>{t.auth?.continueWithGoogle || 'Continuar con Google'}</span>
                 </button>
-
-                {/* TODO: Enable these buttons when providers are configured */}
-                {/* Facebook, Apple, Microsoft buttons commented out for now */}
               </div>
 
-              {/* Divider */}
-              <div className="relative mb-6">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-j-light-text/10 dark:border-white/10"></div>
-                </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-j-light-surface dark:bg-j-dark-surface text-j-light-text/40 dark:text-white/40">
-                    {t.auth?.or || 'or continue with email'}
-                  </span>
-                </div>
+              {/* Info Message */}
+              <div className="mt-6 pt-6 border-t border-j-light-text/10 dark:border-white/10 relative z-10">
+                <p className="text-xs text-center text-j-light-text/50 dark:text-j-dark-text/50">
+                  Al continuar, aceptas nuestros{' '}
+                  <a href="/terms" className="text-warm-glow hover:underline">Términos de Servicio</a>
+                  {' '}y{' '}
+                  <a href="/privacy" className="text-warm-glow hover:underline">Política de Privacidad</a>
+                </p>
               </div>
 
-              {/* Email/Password Form */}
-              <form onSubmit={handleSubmit} className="space-y-4 relative z-10">
-                {mode === 'signup' && (
-                  <div className="grid grid-cols-2 gap-3">
-                    <Input
-                      name="firstName"
-                      label={t.auth?.firstName || 'First Name'}
-                      placeholder="John"
-                      value={formData.firstName}
-                      onChange={handleChange}
-                      required
-                    />
-                    <Input
-                      name="lastName"
-                      label={t.auth?.lastName || 'Last Name'}
-                      placeholder="Doe"
-                      value={formData.lastName}
-                      onChange={handleChange}
-                      required
-                    />
-                  </div>
-                )}
-
-                <Input
-                  name="email"
-                  type="email"
-                  label={t.auth?.email || 'Email'}
-                  placeholder="name@example.com"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                />
-
-                <Input
-                  name="password"
-                  type="password"
-                  label={t.auth?.password || 'Password'}
-                  placeholder="••••••••"
-                  value={formData.password}
-                  onChange={handleChange}
-                  required
-                />
-
-                {mode === 'signup' && (
-                  <Input
-                    name="confirmPassword"
-                    type="password"
-                    label={t.auth?.confirmPassword || 'Confirm Password'}
-                    placeholder="••••••••"
-                    value={formData.confirmPassword}
-                    onChange={handleChange}
-                    required
-                  />
-                )}
-
-                <Button
-                  type="submit"
-                  isLoading={formLoading}
-                  disabled={oauthLoading !== null}
-                  className="w-full mt-6"
-                  variant="primary"
-                >
-                  {formLoading
-                    ? (t.auth?.processing || 'Processing...')
-                    : (mode === 'login'
-                        ? (t.auth?.submitLogin || 'Sign In')
-                        : (t.auth?.submitSignup || 'Create Account')
-                      )
-                  }
-                </Button>
-
-                <div className="pt-4 text-center">
-                  <button
-                    type="button"
-                    onClick={toggleMode}
-                    disabled={formLoading || oauthLoading !== null}
-                    className="text-xs text-j-light-text/60 dark:text-j-dark-text/60 hover:text-warm-glow dark:hover:text-warm-glow transition-colors underline decoration-dotted underline-offset-4 disabled:opacity-50"
-                  >
-                    {mode === 'login'
-                      ? (t.auth?.switchToSignup || "Don't have an account? Sign up")
-                      : (t.auth?.switchToLogin || 'Already have an account? Sign in')
-                    }
-                  </button>
-                </div>
-              </form>
+              {/* Coming Soon Badge */}
+              <div className="mt-4 p-3 rounded-lg bg-warm-glow/5 border border-warm-glow/10 relative z-10">
+                <p className="text-xs text-center text-j-light-text/60 dark:text-j-dark-text/60">
+                  <span className="text-warm-glow font-medium">Próximamente:</span> Registro con email y contraseña
+                </p>
+              </div>
             </GlassCard>
           </motion.div>
         </div>
