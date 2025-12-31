@@ -1,17 +1,20 @@
 /**
- * Auth.js v5 Route Handler
+ * Auth.js API Route Handler
  *
- * This file exports the Auth.js HTTP handlers for authentication.
- * It handles all auth-related API routes under /api/auth/*
+ * This handles all authentication requests including:
+ * - OAuth provider redirects (Google, Facebook, Apple, Microsoft)
+ * - Session management
+ * - Sign in/out operations
  *
- * Available endpoints:
- * - GET  /api/auth/session - Get current session
- * - POST /api/auth/signin - Sign in
- * - POST /api/auth/signout - Sign out
- * - GET  /api/auth/csrf - Get CSRF token
- * - GET  /api/auth/providers - Get configured providers
- *
- * Related: BET-16 (Setup and Dependencies)
+ * Routes handled:
+ * - GET  /api/auth/signin
+ * - POST /api/auth/signin/:provider
+ * - GET  /api/auth/callback/:provider
+ * - GET  /api/auth/signout
+ * - POST /api/auth/signout
+ * - GET  /api/auth/session
+ * - GET  /api/auth/csrf
+ * - GET  /api/auth/providers
  */
 
 import { handlers } from "@/auth"
