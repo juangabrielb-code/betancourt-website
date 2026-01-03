@@ -1,0 +1,38 @@
+[
+  {
+    "id": "d6bd952c-ce01-4a62-bcd9-35fb0719e1ec",
+    "identifier": "BET-42",
+    "url": "https://linear.app/betancourt-website/issue/BET-42/extender-modelo-service-con-display-order",
+    "title": "Extender modelo Service con display_order"
+  },
+  {
+    "id": "7a0c73fa-7719-4ac6-a7ff-de26f27c2699",
+    "identifier": "BET-43",
+    "url": "https://linear.app/betancourt-website/issue/BET-43/crear-app-cms-con-modelo-category",
+    "title": "Crear app CMS con modelo Category"
+  },
+  {
+    "id": "66fe2170-6060-401b-948a-03e0fefbf812",
+    "identifier": "BET-44",
+    "url": "https://linear.app/betancourt-website/issue/BET-44/implementar-validador-de-archivos-de-audio",
+    "title": "Implementar validador de archivos de audio"
+  },
+  {
+    "id": "e5f592d5-c259-4fb6-ac44-3878694e4297",
+    "identifier": "BET-45",
+    "url": "https://linear.app/betancourt-website/issue/BET-45/crear-modelo-portfolioitem",
+    "title": "Crear modelo PortfolioItem"
+  },
+  {
+    "id": "b38f92da-4b8e-425c-8340-d94d71284056",
+    "identifier": "BET-46",
+    "url": "https://linear.app/betancourt-website/issue/BET-46/crear-api-endpoints-para-cms",
+    "title": "Crear API endpoints para CMS"
+  },
+  {
+    "id": "4ed32817-d0b7-4673-ba8a-d945aecae2ce",
+    "identifier": "BET-47",
+    "url": "https://linear.app/betancourt-website/issue/BET-47/pruebas-y-validacion-final",
+    "title": "Pruebas y validaci\u00f3n final"
+  }
+]
