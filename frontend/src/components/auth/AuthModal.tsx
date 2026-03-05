@@ -129,7 +129,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuc
     } catch (err) {
       console.error('Auth error:', err);
       setError(
-        t.auth?.errorGeneral ||
         'Hubo un problema al iniciar sesión. Por favor intenta de nuevo.'
       );
       setOauthLoading(null);
@@ -165,12 +164,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuc
                   <h3 className="text-2xl font-serif font-bold text-j-light-text dark:text-j-dark-text">
                     {mode === 'login'
                       ? (t.auth?.loginTitle || 'Bienvenido')
-                      : (t.auth?.registerTitle || 'Crear cuenta')}
+                      : (t.auth?.signupTitle || 'Crear cuenta')}
                   </h3>
                   <p className="text-j-light-text/60 dark:text-j-dark-text/60 text-sm mt-1">
                     {mode === 'login'
                       ? (t.auth?.subtitleLogin || 'Inicia sesión para continuar')
-                      : (t.auth?.subtitleRegister || 'Regístrate para comenzar')}
+                      : (t.auth?.subtitleSignup || 'Regístrate para comenzar')}
                   </p>
                 </div>
                 <button

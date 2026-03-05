@@ -191,7 +191,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onNavigate }) => {
                     >
                       <span>💰</span> Wallet
                     </Link>
-                    {session.user.role === 'ADMIN' && (
+                    {(session.user as any).role === 'ADMIN' && (
                       <Link
                         href="/admin"
                         className="flex items-center gap-2 px-4 py-2 text-sm text-j-light-text dark:text-j-dark-text hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
