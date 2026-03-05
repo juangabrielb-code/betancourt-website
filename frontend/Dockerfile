@@ -17,6 +17,9 @@ RUN npm cache clean --force && \
 # Copiar el resto del código
 COPY . .
 
+# Generar Prisma Client
+RUN npx prisma generate
+
 # Exponer el puerto 3000
 EXPOSE 3000
 
