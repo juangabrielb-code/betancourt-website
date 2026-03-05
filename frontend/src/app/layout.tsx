@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import { ClientProviders } from "@/components/ClientProviders";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 // Force dynamic rendering for all pages
 export const dynamic = 'force-dynamic';
@@ -50,6 +51,7 @@ export default function RootLayout({
         <ClientProviders>
           {children}
         </ClientProviders>
+        <SpeedInsights />
       </body>
     </html>
   );
