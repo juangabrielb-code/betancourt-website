@@ -58,11 +58,15 @@ export const authConfig = {
       const isOnDashboard = nextUrl.pathname.startsWith("/dashboard")
       const isOnAdmin = nextUrl.pathname.startsWith("/admin")
 
-      if (isOnDashboard || isOnAdmin) {
-        if (!isLoggedIn) return false
-        if (isOnAdmin && (auth.user as any)?.role !== "ADMIN") {
-          return Response.redirect(new URL("/dashboard", nextUrl))
+      if (isOnAdmin) {
+        if (!isLoggedIn || (auth.user as any)?.role !== "ADMIN") {
+          return Response.redirect(new URL("/", nextUrl))
         }
+        return true
+      }
+
+      if (isOnDashboard) {
+        if (!isLoggedIn) return false
         return true
       }
 

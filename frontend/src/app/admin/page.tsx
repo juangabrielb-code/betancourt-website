@@ -1,117 +1,105 @@
 'use client';
 
-import { useAuth } from '@/contexts/AuthContext';
-import { Container } from '@/components/ui/UI';
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { PortfolioItem } from '@/types';
 
 export default function AdminPage() {
-  const { session, isLoading } = useAuth();
+  const [items, setItems] = useState<PortfolioItem[]>([])
+  const [loading, setLoading] = useState(true)
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-j-light-bg dark:bg-j-dark-bg">
-        <div className="flex flex-col items-center gap-4">
-          <svg className="animate-spin h-12 w-12 text-warm-glow" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-          </svg>
-          <p className="text-j-light-text dark:text-j-dark-text text-sm">Loading...</p>
-        </div>
-      </div>
-    );
-  }
+  useEffect(() => {
+    fetch('/api/admin/portfolio')
+      .then(r => r.json())
+      .then(data => { setItems(Array.isArray(data) ? data : []); setLoading(false) })
+      .catch(() => setLoading(false))
+  }, [])
+
+  const total = items.length
+  const published = items.filter(i => i.published).length
+  const featured = items.filter(i => i.featured).length
+  const categories = ['MIXING', 'MASTERING', 'PRODUCTION', 'ATMOS'].map(cat => ({
+    name: cat,
+    count: items.filter(i => i.category === cat).length,
+  }))
+
+  const stats = [
+    { icon: '🎵', label: 'Total items', value: loading ? '—' : String(total) },
+    { icon: '🌐', label: 'Publicados', value: loading ? '—' : String(published) },
+    { icon: '⭐', label: 'Destacados', value: loading ? '—' : String(featured) },
+    { icon: '🔒', label: 'Borradores', value: loading ? '—' : String(total - published) },
+  ]
 
   return (
-    <div className="min-h-screen bg-j-light-bg dark:bg-j-dark-bg pt-24 pb-12">
-      <Container>
-        <div className="max-w-6xl mx-auto">
-          {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-4xl font-serif font-bold text-j-light-text dark:text-j-dark-text mb-2">
-              Admin Panel
-            </h1>
-            <p className="text-j-light-text/60 dark:text-j-dark-text/60">
-              Manage your application and users
-            </p>
+    <div className="max-w-5xl mx-auto">
+      <div className="mb-8">
+        <h1 className="text-3xl font-serif font-bold text-j-light-text dark:text-j-dark-text mb-1">
+          Admin Panel
+        </h1>
+        <p className="text-j-light-text/60 dark:text-j-dark-text/60 text-sm">
+          Panel de gestión de contenidos — Betancourt Audio
+        </p>
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        {stats.map((stat, i) => (
+          <div
+            key={i}
+            className="bg-white/50 dark:bg-white/5 backdrop-blur-xl rounded-2xl border border-j-light-text/10 dark:border-white/10 p-5"
+          >
+            <div className="text-2xl mb-2">{stat.icon}</div>
+            <p className="text-2xl font-bold text-j-light-text dark:text-j-dark-text">{stat.value}</p>
+            <p className="text-xs text-j-light-text/50 dark:text-j-dark-text/50 mt-0.5">{stat.label}</p>
           </div>
+        ))}
+      </div>
 
-          {/* Admin Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-            <div className="bg-white/50 dark:bg-white/5 backdrop-blur-xl rounded-2xl border border-j-light-text/10 dark:border-white/10 p-6">
-              <div className="text-warm-glow text-3xl mb-2">👥</div>
-              <p className="text-2xl font-bold text-j-light-text dark:text-j-dark-text">0</p>
-              <p className="text-sm text-j-light-text/60 dark:text-j-dark-text/60">Total Users</p>
+      {/* Category breakdown */}
+      <div className="bg-white/50 dark:bg-white/5 rounded-2xl border border-j-light-text/10 dark:border-white/10 p-6 mb-6">
+        <h2 className="text-lg font-semibold text-j-light-text dark:text-j-dark-text mb-4">
+          Por categoría
+        </h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {categories.map(cat => (
+            <div key={cat.name} className="text-center p-4 rounded-xl bg-j-light-text/5 dark:bg-white/5">
+              <p className="text-xl font-bold text-warm-glow">{loading ? '—' : cat.count}</p>
+              <p className="text-xs text-j-light-text/60 dark:text-j-dark-text/60 mt-1">{cat.name}</p>
             </div>
-
-            <div className="bg-white/50 dark:bg-white/5 backdrop-blur-xl rounded-2xl border border-j-light-text/10 dark:border-white/10 p-6">
-              <div className="text-warm-glow text-3xl mb-2">📁</div>
-              <p className="text-2xl font-bold text-j-light-text dark:text-j-dark-text">0</p>
-              <p className="text-sm text-j-light-text/60 dark:text-j-dark-text/60">Total Projects</p>
-            </div>
-
-            <div className="bg-white/50 dark:bg-white/5 backdrop-blur-xl rounded-2xl border border-j-light-text/10 dark:border-white/10 p-6">
-              <div className="text-warm-glow text-3xl mb-2">🔐</div>
-              <p className="text-2xl font-bold text-j-light-text dark:text-j-dark-text">0</p>
-              <p className="text-sm text-j-light-text/60 dark:text-j-dark-text/60">Active Sessions</p>
-            </div>
-
-            <div className="bg-white/50 dark:bg-white/5 backdrop-blur-xl rounded-2xl border border-j-light-text/10 dark:border-white/10 p-6">
-              <div className="text-warm-glow text-3xl mb-2">⚡</div>
-              <p className="text-2xl font-bold text-j-light-text dark:text-j-dark-text">100%</p>
-              <p className="text-sm text-j-light-text/60 dark:text-j-dark-text/60">System Uptime</p>
-            </div>
-          </div>
-
-          {/* Admin Actions */}
-          <div className="bg-white/50 dark:bg-white/5 backdrop-blur-xl rounded-2xl border border-j-light-text/10 dark:border-white/10 p-6 mb-6">
-            <h2 className="text-xl font-semibold text-j-light-text dark:text-j-dark-text mb-4">Management</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <button className="p-4 rounded-xl bg-warm-glow/10 hover:bg-warm-glow/20 border border-warm-glow/20 transition-colors text-left">
-                <div className="text-warm-glow text-2xl mb-2">👤</div>
-                <h3 className="font-semibold text-j-light-text dark:text-j-dark-text mb-1">User Management</h3>
-                <p className="text-xs text-j-light-text/60 dark:text-j-dark-text/60">View and manage all users</p>
-              </button>
-
-              <button className="p-4 rounded-xl bg-warm-glow/10 hover:bg-warm-glow/20 border border-warm-glow/20 transition-colors text-left">
-                <div className="text-warm-glow text-2xl mb-2">🔑</div>
-                <h3 className="font-semibold text-j-light-text dark:text-j-dark-text mb-1">Role Management</h3>
-                <p className="text-xs text-j-light-text/60 dark:text-j-dark-text/60">Manage user roles and permissions</p>
-              </button>
-
-              <button className="p-4 rounded-xl bg-warm-glow/10 hover:bg-warm-glow/20 border border-warm-glow/20 transition-colors text-left">
-                <div className="text-warm-glow text-2xl mb-2">🔧</div>
-                <h3 className="font-semibold text-j-light-text dark:text-j-dark-text mb-1">System Settings</h3>
-                <p className="text-xs text-j-light-text/60 dark:text-j-dark-text/60">Configure system settings</p>
-              </button>
-
-              <button className="p-4 rounded-xl bg-warm-glow/10 hover:bg-warm-glow/20 border border-warm-glow/20 transition-colors text-left">
-                <div className="text-warm-glow text-2xl mb-2">📧</div>
-                <h3 className="font-semibold text-j-light-text dark:text-j-dark-text mb-1">Email Templates</h3>
-                <p className="text-xs text-j-light-text/60 dark:text-j-dark-text/60">Manage email templates</p>
-              </button>
-
-              <button className="p-4 rounded-xl bg-warm-glow/10 hover:bg-warm-glow/20 border border-warm-glow/20 transition-colors text-left">
-                <div className="text-warm-glow text-2xl mb-2">📊</div>
-                <h3 className="font-semibold text-j-light-text dark:text-j-dark-text mb-1">Reports</h3>
-                <p className="text-xs text-j-light-text/60 dark:text-j-dark-text/60">View system reports and logs</p>
-              </button>
-
-              <button className="p-4 rounded-xl bg-warm-glow/10 hover:bg-warm-glow/20 border border-warm-glow/20 transition-colors text-left">
-                <div className="text-warm-glow text-2xl mb-2">🔒</div>
-                <h3 className="font-semibold text-j-light-text dark:text-j-dark-text mb-1">Security</h3>
-                <p className="text-xs text-j-light-text/60 dark:text-j-dark-text/60">Security and audit logs</p>
-              </button>
-            </div>
-          </div>
-
-          {/* Recent Activity */}
-          <div className="bg-white/50 dark:bg-white/5 backdrop-blur-xl rounded-2xl border border-j-light-text/10 dark:border-white/10 p-6">
-            <h2 className="text-xl font-semibold text-j-light-text dark:text-j-dark-text mb-4">Recent Activity</h2>
-            <div className="text-center py-8 text-j-light-text/60 dark:text-j-dark-text/60">
-              No recent activity to display
-            </div>
-          </div>
+          ))}
         </div>
-      </Container>
+      </div>
+
+      {/* Quick actions */}
+      <div className="bg-white/50 dark:bg-white/5 rounded-2xl border border-j-light-text/10 dark:border-white/10 p-6">
+        <h2 className="text-lg font-semibold text-j-light-text dark:text-j-dark-text mb-4">
+          Acciones rápidas
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Link href="/admin/portfolio">
+            <div className="p-5 rounded-xl bg-warm-glow/10 hover:bg-warm-glow/20 border border-warm-glow/20 transition-colors cursor-pointer">
+              <div className="text-2xl mb-2">🎵</div>
+              <h3 className="font-semibold text-j-light-text dark:text-j-dark-text mb-1">
+                Gestionar Portafolio
+              </h3>
+              <p className="text-xs text-j-light-text/60 dark:text-j-dark-text/60">
+                Crear, editar y publicar items del portafolio
+              </p>
+            </div>
+          </Link>
+          <Link href="/admin/portfolio/new">
+            <div className="p-5 rounded-xl bg-warm-glow/10 hover:bg-warm-glow/20 border border-warm-glow/20 transition-colors cursor-pointer">
+              <div className="text-2xl mb-2">➕</div>
+              <h3 className="font-semibold text-j-light-text dark:text-j-dark-text mb-1">
+                Nuevo Item
+              </h3>
+              <p className="text-xs text-j-light-text/60 dark:text-j-dark-text/60">
+                Agregar un nuevo trabajo al portafolio
+              </p>
+            </div>
+          </Link>
+        </div>
+      </div>
     </div>
-  );
+  )
 }

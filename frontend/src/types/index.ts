@@ -135,6 +135,31 @@ export interface CreateOrderResponse {
   checkoutUrl?: string; // For Bold
 }
 
+// --- Portfolio Types ---
+
+export type PortfolioMediaType = 'YOUTUBE' | 'SPOTIFY' | 'SOUNDCLOUD' | 'FILE'
+export type PortfolioCategory = 'MIXING' | 'MASTERING' | 'PRODUCTION' | 'ATMOS'
+
+export interface PortfolioItem {
+  id: string
+  title: string
+  description?: string
+  mediaType: PortfolioMediaType
+  embedUrl?: string
+  fileUrl?: string
+  fileKey?: string
+  category: PortfolioCategory
+  tags: string[]
+  coverImage?: string
+  featured: boolean
+  published: boolean
+  sortOrder: number
+  createdAt: string
+  updatedAt: string
+}
+
+export type CreatePortfolioItemInput = Omit<PortfolioItem, 'id' | 'createdAt' | 'updatedAt'>
+
 // --- Dynamic Form Types ---
 
 export type ProjectCategory = 'MUSIC' | 'MEDIA' | 'PODCAST';

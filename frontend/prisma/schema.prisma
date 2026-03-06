@@ -72,3 +72,49 @@ model VerificationToken {
   @@unique([identifier, token])
   @@map("verification_tokens")
 }
+
+// PortfolioItem - managed by admin, displayed publicly
+model PortfolioItem {
+  id          String   @id @default(cuid())
+  title       String
+  description String?  @db.Text
+  mediaType   String   // "YOUTUBE" | "SPOTIFY" | "SOUNDCLOUD" | "FILE"
+  embedUrl    String?
+  fileUrl     String?
+  fileKey     String?
+  category    String   // "MIXING" | "MASTERING" | "PRODUCTION" | "ATMOS"
+  tags        String[]
+  coverImage  String?
+  featured    Boolean  @default(false)
+  published   Boolean  @default(false)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([published, featured])
+  @@index([category])
+  @@map("portfolio_items")
+}
+
+// ServiceItem - managed by admin, prices shown on landing
+model ServiceItem {
+  id            String   @id @default(cuid())
+  nameEn        String
+  nameEs        String
+  descriptionEn String   @db.Text
+  descriptionEs String   @db.Text
+  priceUsd      Int
+  priceCop      Int
+  type          String   // "MIXING" | "MASTERING" | "PRODUCTION" | "CONSULTATION"
+  featuresEn    String[]
+  featuresEs    String[]
+  imageUrl      String?
+  isPopular     Boolean  @default(false)
+  active        Boolean  @default(true)
+  sortOrder     Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([active])
+  @@map("service_items")
+}
